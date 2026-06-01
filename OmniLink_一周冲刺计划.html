@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document</title>
+<style>
+/* ================================================================
+   Mem0 Doc — Clean & Modern Stylesheet
+   ================================================================ */
+
+/* ---- Design Tokens ---- */
+:root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1a1d23;
+    --text-secondary: #4a4f5a;
+    --muted: #787d89;
+    --line: #e4e7ed;
+    --line-light: #f1f3f6;
+    --accent: #3069f0;
+    --accent-hover: #2556d0;
+    --accent-light: #eef3ff;
+    --accent-ring: rgba(48,105,240,0.15);
+    --code-bg: #f6f8fb;
+    --code-border: #dde2eb;
+    --inline-code: #e64900;
+    --code-highlight: #fef3ed;
+    --tag-bg: #edf3ff;
+    --tag-border: #d4e2ff;
+    --tag-color: #1b4acc;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --transition: 0.15s ease;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Noto Sans SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro",
+                "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #111318;
+        --card: #1a1d27;
+        --text: #e4e6ed;
+        --text-secondary: #b8bcc6;
+        --muted: #8b8f9b;
+        --line: #2a2d3a;
+        --line-light: #222533;
+        --accent: #6b9cf5;
+        --accent-hover: #8db8f5;
+        --accent-light: #1a2440;
+        --accent-ring: rgba(107,156,245,0.2);
+        --code-bg: #1e2130;
+        --code-border: #2e3143;
+        --inline-code: #f08d49;
+        --code-highlight: #2a2018;
+        --tag-bg: #1e2950;
+        --tag-border: #334577;
+        --tag-color: #8db8f5;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+    }
+}
+
+/* ---- Reset ---- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    padding: 40px 20px 60px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.82;
+    font-size: 17px;
+    background-image:
+        radial-gradient(ellipse at 20% 0%, var(--accent-light) 0%, transparent 65%),
+        radial-gradient(ellipse at 80% 100%, rgba(120,120,180,0.04) 0%, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* ---- Layout ---- */
+.wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 48px 56px 56px;
+    box-shadow: var(--shadow-md);
+}
+
+/* ---- Headings ---- */
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.35;
+    margin: 36px 0 14px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    font-weight: 650;
+}
+h1:first-child { margin-top: 0; }
+
+h1 {
+    font-size: 2.15em;
+    font-weight: 750;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+    padding-bottom: 20px;
+    border-bottom: 2.5px solid var(--line);
+    background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h2 {
+    font-size: 1.55em;
+    font-weight: 680;
+    margin-top: 48px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--line);
+    position: relative;
+}
+h2::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: -1.5px;
+    width: 48px; height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+}
+
+h3 {
+    font-size: 1.22em;
+    font-weight: 650;
+    margin-top: 32px;
+    color: var(--text);
+}
+h3::before {
+    content: "◆ ";
+    color: var(--accent);
+    font-size: 0.5em;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+
+h4 { font-size: 1.08em; font-weight: 620; margin-top: 24px; color: var(--text-secondary); }
+h5 { font-size: 1em; font-weight: 600; color: var(--muted); }
+h6 { font-size: 0.92em; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---- Paragraph ---- */
+p { margin: 10px 0; color: var(--text-secondary); }
+p strong { color: var(--text); }
+
+/* ---- Links ---- */
+a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--transition), color var(--transition);
+}
+a:hover {
+    color: var(--accent-hover);
+    border-bottom-color: var(--accent-hover);
+}
+
+/* ---- Lists ---- */
+ul, ol {
+    margin: 10px 0 18px 28px;
+    color: var(--text-secondary);
+}
+li {
+    margin: 5px 0;
+    padding-left: 2px;
+}
+li::marker { color: var(--accent); }
+ul li::marker { color: var(--accent); }
+ol li::marker { color: var(--muted); font-weight: 600; font-size: 0.85em; }
+
+/* ---- Blockquote ---- */
+blockquote {
+    margin: 18px 0;
+    padding: 14px 20px;
+    border-left: 4px solid var(--accent);
+    background: var(--accent-light);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--text-secondary);
+    font-size: 0.96em;
+}
+blockquote p { margin: 4px 0; }
+blockquote strong { color: var(--accent); }
+
+/* ---- Code ---- */
+code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+}
+
+:not(pre) > code {
+    background: var(--code-bg);
+    color: var(--inline-code);
+    padding: 2px 7px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--code-border);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+pre {
+    margin: 18px 0;
+    padding: 18px 22px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+/* ---- Tables ---- */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 18px 0;
+    font-size: 14.5px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+thead th {
+    background: var(--code-bg);
+    font-weight: 650;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--line);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line-light);
+    vertical-align: middle;
+    color: var(--text-secondary);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--accent-light); }
+tbody tr:hover td { color: var(--text); }
+
+/* ---- Figures & Images ---- */
+figure {
+    margin: 20px 0;
+    text-align: center;
+}
+figure img {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+}
+figcaption {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* ---- Horizontal Rule ---- */
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line), transparent);
+    margin: 32px 0;
+}
+
+/* ---- Mermaid ---- */
+pre.mermaid {
+    margin: 18px 0;
+    padding: 18px 22px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ---- Selection ---- */
+::selection {
+    background: var(--accent-ring);
+    color: var(--text);
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ---- Print Styles ---- */
+@media print {
+    body {
+        background: #fff;
+        padding: 0;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    .wrap {
+        max-width: 100%;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+    h1 { -webkit-text-fill-color: #000; }
+    h2::after { display: none; }
+    h3::before { content: ""; }
+    pre, pre.mermaid { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    body {
+        padding: 12px 8px 40px;
+        font-size: 16px;
+    }
+    .wrap {
+        padding: 28px 18px;
+        border-radius: var(--radius-md);
+    }
+    h1 { font-size: 1.6em; padding-bottom: 14px; }
+    h2 { font-size: 1.3em; margin-top: 32px; }
+    h3 { font-size: 1.12em; }
+    h4 { font-size: 1.02em; }
+    pre, pre.mermaid {
+        font-size: 13px;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+    }
+    table { font-size: 13px; }
+    thead th { padding: 8px 10px; }
+    tbody td { padding: 8px 10px; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>⚡ OmniLink 一周冲刺计划 (7-Day Sprint)</h1>
+<blockquote>
+<p><strong>🎯 冲刺目标</strong>：用 7 天做出一个<strong>能当场稳定演示</strong>的核心闭环 Demo——而不是一个功能完整但跑不稳的半成品。</p>
+<p><strong>📌 配套文档</strong>：本计划是 <code>OmniLink_立项方案.md</code> 的执行版，范围被刻意收窄。</p>
+</blockquote>
+<hr>
+<h2>0. 🧭 冲刺铁律 (Sprint Rules)</h2>
+<p>这一周成败取决于<strong>范围控制</strong>，不是写代码速度。先记住三条铁律：</p>
+<ol>
+<li><strong>能演示 &gt; 去中心化纯度</strong>：这一周先让整条线&quot;亮起来&quot;，纯度问题第 2、3 周再补。</li>
+<li><strong>每天必须有一个能跑的东西</strong>：哪怕很糙，绝不允许&quot;写了三天还没法运行&quot;。</li>
+<li><strong>遇到坑 30 分钟原则</strong>：任何一个技术点卡超过 30 分钟，立刻换降级方案（见下），不死磕。</li>
+</ol>
+<hr>
+<h2>1. ✅ 本周做什么 / ❌ 绝对不碰</h2>
+<table>
+<thead><tr>
+<th>模块</th>
+<th>✅ 本周做（MVP）</th>
+<th>❌ 本周绝对不碰</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>链上合约</td>
+<td>设备注册、所有权绑定、授权/撤销（含时间限制）</td>
+<td>中继激励结算合约（第 2 周）</td>
+</tr>
+<tr>
+<td>设备</td>
+<td>1 个虚拟门锁（软件模拟，Node 脚本）</td>
+<td>真实硬件 / ESP32 / 多设备</td>
+</tr>
+<tr>
+<td>P2P 传输</td>
+<td>WebRTC 直连，<strong>signaling 先走简易服务器</strong></td>
+<td>链上 signaling、TURN 中继、NAT 打洞优化</td>
+</tr>
+<tr>
+<td>AI 层</td>
+<td>第 1 层：自然语言单设备/多设备控制</td>
+<td>场景编排、主动 Agent、多轮记忆</td>
+</tr>
+<tr>
+<td>前端</td>
+<td>一个能连钱包、发指令、看状态的简单页面</td>
+<td>精美 UI、移动端适配</td>
+</tr>
+<tr>
+<td>演示</td>
+<td>门锁主线能从头跑到尾</td>
+<td>异常场景、容错、多用户</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>关键妥协</strong>：这周的 signaling <strong>先用一个最简单的 WebSocket 服务器</strong>牵线，先保证 P2P 能通。&quot;把 signaling 搬上链&quot;是第 2 周的去中心化升级，不要在第一周碰它——它正是最耗时的部分。</p>
+</blockquote>
+<hr>
+<h2>2. 📅 七天逐日清单 (Day-by-Day)</h2>
+<blockquote>
+<p>角色简写：<strong>C</strong>=合约/Web3(你) · <strong>B</strong>=后端/设备/P2P(队员A) · <strong>A</strong>=AI/前端(队员B)</p>
+</blockquote>
+<h3>Day 1 — 地基与最高风险验证</h3>
+<blockquote>
+<p>🎯 目标：环境就绪，<strong>最危险的 P2P 单独跑通</strong></p>
+</blockquote>
+<ul>
+<li><strong>C</strong>：搭好 TRON 测试网环境(TronLink 钱包、领测试币、TronWeb 跑通一次合约部署 demo)</li>
+<li><strong>B</strong>：🔴 <strong>最高优先级</strong> — 用 <code>simple-peer</code> 让两个 Node 进程经简易 WebSocket signaling <strong>互发一条消息</strong>。这一步通了，本周最大风险就解除了。</li>
+<li><strong>A</strong>：搭好前端骨架 + 跑通一次 LLM Function Calling(输入&quot;开灯&quot;，输出结构化指令 JSON)</li>
+<li>✅ <strong>当日验收</strong>：三人各自的&quot;hello world&quot;都能跑(合约能部署 / 两进程能 P2P 通信 / LLM 能出指令)</li>
+</ul>
+<h3>Day 2 — 合约 + 虚拟设备</h3>
+<blockquote>
+<p>🎯 目标：链上注册与授权可用</p>
+</blockquote>
+<ul>
+<li><strong>C</strong>：写 <code>DeviceRegistry</code> 合约 — <code>registerDevice(deviceId, pubkey)</code>、<code>bindOwner</code>、<code>grantAccess(user, expiry)</code>、<code>revokeAccess</code>、<code>checkAccess(view)</code>。部署到测试网</li>
+<li><strong>B</strong>：写虚拟门锁脚本 — 启动时调用合约自注册；维持一个可被 P2P 连接的服务端</li>
+<li><strong>A</strong>：前端接入 TronLink，能读链上设备列表、能调用 <code>grantAccess</code></li>
+<li>✅ <strong>当日验收</strong>：前端点一下，链上多出一台设备并完成授权(在区块浏览器能看到交易)</li>
+</ul>
+<h3>Day 3 — 打通主干道(链 + P2P)</h3>
+<blockquote>
+<p>🎯 目标：用户端凭链上授权连上设备</p>
+</blockquote>
+<ul>
+<li><strong>B + C</strong>：客户端流程 — 读链发现设备 → 校验我的授权 → 经 signaling 建立 WebRTC 直连</li>
+<li><strong>B</strong>：门锁收到 P2P 指令后改变状态(锁/解锁)并回传</li>
+<li><strong>A</strong>：前端把&quot;连接 + 控制&quot;串起来，状态实时显示</li>
+<li>✅ <strong>当日验收</strong>：用户端能连上虚拟门锁并成功&quot;解锁/上锁&quot;，全程不经业务服务器(除 signaling)</li>
+</ul>
+<h3>Day 4 — 接上 AI 大脑</h3>
+<blockquote>
+<p>🎯 目标：自然语言能控制设备</p>
+</blockquote>
+<ul>
+<li><strong>A</strong>：AI 控制层 — 自然语言 → Function Calling → 路由到对应设备指令 → 经 P2P 下发</li>
+<li><strong>A + B</strong>：支持&quot;一句话控制&quot;(如&quot;把门锁上&quot;)；若有余力做&quot;多设备一句话&quot;</li>
+<li><strong>C</strong>：在授权校验里接上<strong>时间限制</strong>逻辑(过期自动拒绝)</li>
+<li>✅ <strong>当日验收</strong>：对着输入框打字&quot;把门锁上&quot;，门锁真的锁上了</li>
+</ul>
+<h3>Day 5 — 串成门锁演示主线</h3>
+<blockquote>
+<p>🎯 目标：完整故事能从头跑到尾</p>
+</blockquote>
+<ul>
+<li><strong>全员</strong>：按立项方案的演示脚本，把&quot;注册 → 认领 → AI 授权访客 → 访客端凭链上授权直连 → 到期失效&quot;串成一条线</li>
+<li><strong>A</strong>：模拟&quot;第二个生态的访客 App&quot;(可以是同前端的另一个角色/账号)</li>
+<li>✅ <strong>当日验收</strong>：完整演示脚本能连续跑通一遍(允许手动、允许糙)</li>
+</ul>
+<h3>Day 6 — 加固与防翻车</h3>
+<blockquote>
+<p>🎯 目标：从&quot;能跑&quot;到&quot;演示时不崩&quot;</p>
+</blockquote>
+<ul>
+<li><strong>全员</strong>：跑通 10 遍，记录每次卡壳点并修掉</li>
+<li><strong>B</strong>：signaling/设备加基础重连与异常提示；准备好&quot;演示用固定网络环境&quot;</li>
+<li><strong>A</strong>：前端把关键状态做得直观(便于评委看懂)</li>
+<li>✅ <strong>当日验收</strong>：连续 3 次完整演示不崩</li>
+</ul>
+<h3>Day 7 — 录制与提交物</h3>
+<blockquote>
+<p>🎯 目标：交付物齐全</p>
+</blockquote>
+<ul>
+<li><strong>A</strong>：录制 Demo 视频(3–5 分钟，按演示脚本)</li>
+<li><strong>C</strong>：整理开源仓库 + README(部署步骤、合约地址)</li>
+<li><strong>全员</strong>：用 <code>docman</code> 把立项方案出 HTML/同步飞书；自查提交物清单</li>
+<li>✅ <strong>当日验收</strong>：仓库 + 视频 + 文档 + 合约地址 四样齐全</li>
+</ul>
+<hr>
+<h2>3. 🪂 降级方案 (Fallback · 卡住时立刻切)</h2>
+<p>每个高风险点都预设一个&quot;做不出来就切&quot;的降级版，保证<strong>任何情况下都有能演示的东西</strong>：</p>
+<table>
+<thead><tr>
+<th>卡住的环节</th>
+<th>降级方案</th>
+<th>损失</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>WebRTC 跨网络打洞失败</td>
+<td>演示时设备与用户<strong>同一局域网</strong>直连</td>
+<td>几乎无（故事不变）</td>
+</tr>
+<tr>
+<td>signaling 调试太久</td>
+<td>用最简单的 WebSocket 中转 SDP，不上链</td>
+<td>仅&quot;发现层去中心化&quot;延后到第 2 周</td>
+</tr>
+<tr>
+<td>TronLink/钱包前端集成卡壳</td>
+<td>后端用私钥直接发交易，前端只读链</td>
+<td>体验略弱，闭环仍在</td>
+</tr>
+<tr>
+<td>时间限授权来不及</td>
+<td>先做&quot;授权/撤销&quot;，时间限制口头演示</td>
+<td>少一个亮点</td>
+</tr>
+<tr>
+<td>AI 多设备控制来不及</td>
+<td>只做单设备自然语言控制</td>
+<td>少一个亮点</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>🧯 <strong>底线版本(哪怕全降级也要有)</strong>：虚拟门锁上链注册 → 用户端读链校验授权 → 局域网 P2P 连上 → AI 一句话解锁。<strong>这四步就是一个成立的 Demo。</strong></p>
+</blockquote>
+<hr>
+<h2>4. 🤖 AI 编码加速建议 (Leverage AI Coding)</h2>
+<p>你 AI 编码能力强，把火力用在对的地方：</p>
+<ul>
+<li>🟢 <strong>大胆让 AI 全写</strong>：Solidity 合约、前端样板、虚拟设备脚本、Function Calling 封装——这些套路化代码 AI 又快又准。</li>
+<li>🟡 <strong>AI 辅助 + 你把关</strong>：合约安全校验、授权逻辑边界、链上读写时序。</li>
+<li>🔴 <strong>别指望 AI，留足人力时间</strong>：WebRTC 打洞调试、跨组件联调、真机真网络的 Demo 排练——这些 AI 看不到你的运行环境，只能你自己试。<strong>第 6 天的加固时间不能省。</strong></li>
+</ul>
+<blockquote>
+<p>💡 经验法则：AI 让&quot;写代码&quot;快 5–10 倍，但黑客松的时间大头是<strong>调试和联调</strong>，那部分快不了。所以&quot;省下的时间&quot;要投到加固和演示打磨上。</p>
+</blockquote>
+<hr>
+<h2>5. 🎤 路演诚实话术 (Honest Pitch)</h2>
+<p>一周冲刺版会有&quot;未完成&quot;的部分，<strong>主动讲清楚边界反而加分</strong>：</p>
+<blockquote>
+<p>&quot;我们一周内打通了<strong>设备链上身份 + 授权 + P2P 直连 + AI 控制</strong>的完整闭环。当前演示中 signaling 走了简易服务器、中继激励是合约层验证——这两块的<strong>完全去中心化是我们明确的下一步</strong>(已在方案 Roadmap 中)。我们刻意先保证核心体验跑通且稳定，而不是堆砌跑不动的功能。&quot;</p>
+</blockquote>
+<p>这套话术传达三个评委爱听的信号：<strong>做出了能跑的东西 · 清楚自己的边界 · 有清晰的下一步规划。</strong></p>
+<hr>
+<h2>6. 📋 一周结束自检 (Definition of Done)</h2>
+<ul>
+<li>[ ] 虚拟门锁能上链注册(测试网可查交易)</li>
+<li>[ ] 用户端能读链发现设备并校验授权</li>
+<li>[ ] WebRTC P2P 能连上设备并控制(至少局域网)</li>
+<li>[ ] AI 能用自然语言控制设备(至少单设备)</li>
+<li>[ ] 门锁演示主线能连续跑通 3 次不崩</li>
+<li>[ ] Demo 视频录制完成</li>
+<li>[ ] 开源仓库 + README + 合约地址就绪</li>
+</ul>
+<blockquote>
+<p><em>本计划为 7 天冲刺执行版，与 </em><code>OmniLink_立项方案.md</code><em> 配套。第 2、3 周用于补齐链上 signaling、去中心化中继激励与 AI 进阶能力。</em></p>
+</blockquote>
+</div>
+</body>
+</html>

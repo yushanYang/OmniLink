@@ -1,0 +1,20 @@
+{
+  "name": "@omnilink/device",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OmniLink 虚拟设备 + 简易 WebSocket signaling + WebRTC P2P 通道",
+  "type": "module",
+  "main": "src/lock.js",
+  "scripts": {
+    "signaling": "node src/signaling-server.js",
+    "device": "node src/lock.js",
+    "smoke": "node src/p2p-smoke.js",
+    "start": "node src/lock.js"
+  },
+  "dependencies": {
+    "@roamhq/wrtc": "^0.8.0",
+    "dotenv": "^16.4.5",
+    "simple-peer": "^9.11.1",
+    "ws": "^8.18.0"
+  }
+}

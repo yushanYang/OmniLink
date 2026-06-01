@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# Env & secrets (NEVER commit private keys)
+.env
+.env.local
+.env.*.local
+*.key
+secrets.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Solidity / TRON build artifacts
+artifacts/
+cache/
+build/contracts/
+deployments/*.local.json
+
+# Coverage
+coverage/
+.nyc_output/

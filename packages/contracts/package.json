@@ -1,0 +1,19 @@
+{
+  "name": "@omnilink/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OmniLink 链上信任层：设备身份 DID、所有权绑定、授权/撤销（TRON/Solidity）",
+  "type": "module",
+  "scripts": {
+    "compile": "node scripts/compile.js",
+    "deploy": "node scripts/deploy.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "tronweb": "^6.0.0"
+  },
+  "devDependencies": {
+    "solc": "^0.8.26"
+  }
+}

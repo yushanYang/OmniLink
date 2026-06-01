@@ -1,0 +1,21 @@
+{
+  "name": "omnilink",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OmniLink - 去中心化 IoT 互联与 AI 管家 (HTX Genesis Hackathon)",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "signaling": "npm run start -w @omnilink/device --if-present -- signaling",
+    "device": "npm run device -w @omnilink/device",
+    "ai": "npm run start -w @omnilink/ai",
+    "web": "npm run dev -w @omnilink/web",
+    "contracts:deploy": "npm run deploy -w @omnilink/contracts"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

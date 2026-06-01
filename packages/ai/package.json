@@ -1,0 +1,16 @@
+{
+  "name": "@omnilink/ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OmniLink AI 管家层：自然语言 → Function Calling → 跨设备指令路由",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/cli.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "openai": "^4.67.0"
+  }
+}

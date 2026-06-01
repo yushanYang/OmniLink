@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document</title>
+<style>
+/* ================================================================
+   Mem0 Doc — Clean & Modern Stylesheet
+   ================================================================ */
+
+/* ---- Design Tokens ---- */
+:root {
+    --bg: #f5f6f8;
+    --card: #ffffff;
+    --text: #1a1d23;
+    --text-secondary: #4a4f5a;
+    --muted: #787d89;
+    --line: #e4e7ed;
+    --line-light: #f1f3f6;
+    --accent: #3069f0;
+    --accent-hover: #2556d0;
+    --accent-light: #eef3ff;
+    --accent-ring: rgba(48,105,240,0.15);
+    --code-bg: #f6f8fb;
+    --code-border: #dde2eb;
+    --inline-code: #e64900;
+    --code-highlight: #fef3ed;
+    --tag-bg: #edf3ff;
+    --tag-border: #d4e2ff;
+    --tag-color: #1b4acc;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 16px;
+    --transition: 0.15s ease;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Noto Sans SC", "Microsoft YaHei", "Helvetica Neue", sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Source Code Pro",
+                "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #111318;
+        --card: #1a1d27;
+        --text: #e4e6ed;
+        --text-secondary: #b8bcc6;
+        --muted: #8b8f9b;
+        --line: #2a2d3a;
+        --line-light: #222533;
+        --accent: #6b9cf5;
+        --accent-hover: #8db8f5;
+        --accent-light: #1a2440;
+        --accent-ring: rgba(107,156,245,0.2);
+        --code-bg: #1e2130;
+        --code-border: #2e3143;
+        --inline-code: #f08d49;
+        --code-highlight: #2a2018;
+        --tag-bg: #1e2950;
+        --tag-border: #334577;
+        --tag-color: #8db8f5;
+        --shadow-sm: 0 1px 2px rgba(0,0,0,0.2);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.3);
+    }
+}
+
+/* ---- Reset ---- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    margin: 0;
+    padding: 40px 20px 60px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    line-height: 1.82;
+    font-size: 17px;
+    background-image:
+        radial-gradient(ellipse at 20% 0%, var(--accent-light) 0%, transparent 65%),
+        radial-gradient(ellipse at 80% 100%, rgba(120,120,180,0.04) 0%, transparent 50%);
+    background-attachment: fixed;
+}
+
+/* ---- Layout ---- */
+.wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 48px 56px 56px;
+    box-shadow: var(--shadow-md);
+}
+
+/* ---- Headings ---- */
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.35;
+    margin: 36px 0 14px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    font-weight: 650;
+}
+h1:first-child { margin-top: 0; }
+
+h1 {
+    font-size: 2.15em;
+    font-weight: 750;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+    padding-bottom: 20px;
+    border-bottom: 2.5px solid var(--line);
+    background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+h2 {
+    font-size: 1.55em;
+    font-weight: 680;
+    margin-top: 48px;
+    padding-bottom: 10px;
+    border-bottom: 1.5px solid var(--line);
+    position: relative;
+}
+h2::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: -1.5px;
+    width: 48px; height: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+}
+
+h3 {
+    font-size: 1.22em;
+    font-weight: 650;
+    margin-top: 32px;
+    color: var(--text);
+}
+h3::before {
+    content: "◆ ";
+    color: var(--accent);
+    font-size: 0.5em;
+    vertical-align: middle;
+    margin-right: 2px;
+}
+
+h4 { font-size: 1.08em; font-weight: 620; margin-top: 24px; color: var(--text-secondary); }
+h5 { font-size: 1em; font-weight: 600; color: var(--muted); }
+h6 { font-size: 0.92em; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---- Paragraph ---- */
+p { margin: 10px 0; color: var(--text-secondary); }
+p strong { color: var(--text); }
+
+/* ---- Links ---- */
+a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--transition), color var(--transition);
+}
+a:hover {
+    color: var(--accent-hover);
+    border-bottom-color: var(--accent-hover);
+}
+
+/* ---- Lists ---- */
+ul, ol {
+    margin: 10px 0 18px 28px;
+    color: var(--text-secondary);
+}
+li {
+    margin: 5px 0;
+    padding-left: 2px;
+}
+li::marker { color: var(--accent); }
+ul li::marker { color: var(--accent); }
+ol li::marker { color: var(--muted); font-weight: 600; font-size: 0.85em; }
+
+/* ---- Blockquote ---- */
+blockquote {
+    margin: 18px 0;
+    padding: 14px 20px;
+    border-left: 4px solid var(--accent);
+    background: var(--accent-light);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--text-secondary);
+    font-size: 0.96em;
+}
+blockquote p { margin: 4px 0; }
+blockquote strong { color: var(--accent); }
+
+/* ---- Code ---- */
+code {
+    font-family: var(--font-mono);
+    font-size: 0.88em;
+}
+
+:not(pre) > code {
+    background: var(--code-bg);
+    color: var(--inline-code);
+    padding: 2px 7px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--code-border);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+pre {
+    margin: 18px 0;
+    padding: 18px 22px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.7;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+/* ---- Tables ---- */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 18px 0;
+    font-size: 14.5px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+thead th {
+    background: var(--code-bg);
+    font-weight: 650;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--line);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+}
+tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--line-light);
+    vertical-align: middle;
+    color: var(--text-secondary);
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover { background: var(--accent-light); }
+tbody tr:hover td { color: var(--text); }
+
+/* ---- Figures & Images ---- */
+figure {
+    margin: 20px 0;
+    text-align: center;
+}
+figure img {
+    max-width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow-sm);
+}
+figcaption {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+}
+
+/* ---- Horizontal Rule ---- */
+hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line), transparent);
+    margin: 32px 0;
+}
+
+/* ---- Mermaid ---- */
+pre.mermaid {
+    margin: 18px 0;
+    padding: 18px 22px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 13.5px;
+    line-height: 1.7;
+    box-shadow: var(--shadow-sm);
+}
+
+/* ---- Selection ---- */
+::selection {
+    background: var(--accent-ring);
+    color: var(--text);
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+/* ---- Print Styles ---- */
+@media print {
+    body {
+        background: #fff;
+        padding: 0;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+    .wrap {
+        max-width: 100%;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        box-shadow: none;
+    }
+    h1 { -webkit-text-fill-color: #000; }
+    h2::after { display: none; }
+    h3::before { content: ""; }
+    pre, pre.mermaid { page-break-inside: avoid; }
+    table { page-break-inside: avoid; }
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+    body {
+        padding: 12px 8px 40px;
+        font-size: 16px;
+    }
+    .wrap {
+        padding: 28px 18px;
+        border-radius: var(--radius-md);
+    }
+    h1 { font-size: 1.6em; padding-bottom: 14px; }
+    h2 { font-size: 1.3em; margin-top: 32px; }
+    h3 { font-size: 1.12em; }
+    h4 { font-size: 1.02em; }
+    pre, pre.mermaid {
+        font-size: 13px;
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+    }
+    table { font-size: 13px; }
+    thead th { padding: 8px 10px; }
+    tbody td { padding: 8px 10px; }
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔗 OmniLink：去中心化 IoT 互联与 AI 管家</h1>
+<blockquote>
+<p><strong>💡 一句话定位</strong>：让物联网设备摆脱厂商平台的层层认证，通过区块链直接与用户点对点（P2P）连接，并在此之上构建一个能管理全屋跨品牌设备的 AI 管家。</p>
+<p><strong>🏆 参赛赛事</strong>：HTX Genesis 创世纪黑客松 · Genesis 赛道（AI × Web3）</p>
+<p><strong>🎯 核心标签</strong>：<code>DePIN</code> · <code>去中心化身份(DID)</code> · <code>P2P 直连</code> · <code>AI Agent</code> · <code>TRON</code></p>
+</blockquote>
+<hr>
+<h2>1. 📌 项目概述 (Overview)</h2>
+<p><strong>OmniLink</strong> 是一个面向物联网（IoT）设备的去中心化互联协议与应用。它要解决的，是当前智能设备&quot;接入难、互通难、被厂商锁定&quot;这一根本痛点。</p>
+<p>我们把设备的<strong>身份、所有权与授权</strong>搬到区块链上，让任何一个支持协议的客户端，都能凭借链上授权<strong>直接连接</strong>设备——不再经过某个厂商的中心化云平台。当这条统一的、跨厂商的设备通信通道建立起来后，AI 便获得了一个前所未有的&quot;统一身体&quot;：它可以管理用户名下的<strong>全部</strong>智能设备，无论它们出自哪个品牌，从而成为一个真正意义上的<strong>全屋 AI 管家</strong>。</p>
+<table>
+<thead><tr>
+<th>维度</th>
+<th>说明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>🎯 解决的痛点</td>
+<td>设备接入繁琐、跨品牌无法互通、厂商中心化锁定、隐私与控制权旁落</td>
+</tr>
+<tr>
+<td>🧩 技术组合</td>
+<td>区块链（身份/授权/激励） + P2P（WebRTC 直连） + AI（跨设备管家）</td>
+</tr>
+<tr>
+<td>🌐 所属赛道</td>
+<td>Genesis 赛道（AI × Web3 融合，享受额外加分）</td>
+</tr>
+<tr>
+<td>🪙 HTX 生态资源</td>
+<td>智能合约部署于 TRON，使用 $HTX / TRX 设计中继激励经济模型</td>
+</tr>
+<tr>
+<td>👥 团队</td>
+<td>3 人小队</td>
+</tr>
+<tr>
+<td>⏱️ 周期</td>
+<td>约 3 周（MVP）</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>2. 😖 问题与痛点 (Problem)</h2>
+<h3>2.1 传统 IoT 的连接链路太长</h3>
+<p>今天，一台智能设备要被用户使用，通常要经过这样一条链路：</p>
+<pre><code>设备 → 厂商认证 → 厂商 IoT 平台 → 企业云 → App → 用户
+</code></pre>
+<p>每一跳都需要认证、都依赖某个中心化平台。这带来三个结构性问题：</p>
+<ul>
+<li><strong>🔒 厂商锁定 (Vendor Lock-in)</strong>：A 品牌的设备只能用 A 的 App，连不上 B 的生态。用户家里装了 5 个品牌的设备，就要装 5 个 App。</li>
+<li><strong>🕸️ 中心化依赖</strong>：一旦厂商云服务停服、倒闭或封禁，设备就变成&quot;砖头&quot;。用户对自己买的设备并没有真正的控制权。</li>
+<li><strong>🐢 链路冗长</strong>：数据绕一大圈经过多个云平台，延迟高、隐私暴露面大、运维成本最终转嫁给用户。</li>
+</ul>
+<h3>2.2 AI 管家被困在&quot;生态孤岛&quot;里</h3>
+<p>正因为接入是封闭的，今天所有的 AI 语音助手（如各类智能音箱）都有一个共同的天花板：<strong>它们只能控制自家生态内的设备</strong>。一个 AI 管家无法跨品牌统一调度全屋设备——这不是 AI 不够聪明，而是它<strong>没有一个统一的设备控制通道</strong>。</p>
+<hr>
+<h2>3. 💡 解决方案 (Solution)</h2>
+<p>OmniLink 把上面那条冗长的链路，压缩成一条由区块链做信任背书的<strong>直连</strong>通路：</p>
+<pre><code>设备 ←——（链上身份 + 授权 + 发现）——→ 用户
+        数据走 P2P 直连，信任走链上
+</code></pre>
+<p>核心思想是把&quot;<strong>该去中心化的</strong>&quot;和&quot;<strong>该高效传输的</strong>&quot;分开：</p>
+<ul>
+<li><strong>信任、身份、授权、发现</strong> → 放到链上。这些是中心化平台真正&quot;卡脖子&quot;的地方，去掉它就破除了厂商锁定。</li>
+<li><strong>实际数据传输</strong> → 走 P2P 直连（WebRTC），不经过任何中心化业务服务器。</li>
+</ul>
+<h3>3.1 三层架构 (Three-Layer Architecture)</h3>
+<pre class="mermaid">
+graph TD
+    subgraph L3 [&quot;🧠 AI 管家层 (AI Butler)&quot;]
+        AI[&quot;AI Agent&lt;br/&gt;自然语言控制 / 场景编排 / 主动守护&quot;]
+    end
+
+    subgraph L2 [&quot;📡 P2P 传输层 (P2P Transport)&quot;]
+        WRTC[&quot;WebRTC 数据通道&lt;br/&gt;STUN 直连 / TURN 中继兜底&quot;]
+    end
+
+    subgraph L1 [&quot;⛓️ 链上信任层 (On-Chain Trust · TRON)&quot;]
+        ID[&quot;设备身份 DID&lt;br/&gt;+ 所有权绑定&quot;]
+        AUTH[&quot;授权 / 撤销&lt;br/&gt;(可带时间限制)&quot;]
+        RELAY[&quot;中继节点注册&lt;br/&gt;+ 代币激励结算&quot;]
+    end
+
+    AI --&gt; WRTC
+    WRTC --&gt; ID
+    WRTC --&gt; AUTH
+    WRTC -.打洞失败时.-&gt; RELAY
+
+    style AI fill:#ffcc00,stroke:#333,stroke-width:2px
+    style L1 fill:#e6f0ff,stroke:#3366cc,stroke-width:2px
+    style L2 fill:#eafbea,stroke:#33aa33,stroke-width:2px
+    style L3 fill:#fff9e6,stroke:#ff9900,stroke-width:2px
+
+</pre>
+<table>
+<thead><tr>
+<th>层</th>
+<th>职责</th>
+<th>关键技术</th>
+<th>是否去中心化</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>⛓️ 链上信任层</td>
+<td>设备身份、所有权、授权、中继激励</td>
+<td>TRON / Solidity 合约</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>📡 P2P 传输层</td>
+<td>设备与用户之间的实际数据直连</td>
+<td>WebRTC（simple-peer）、STUN/TURN</td>
+<td>✅（数据不过业务服务器）</td>
+</tr>
+<tr>
+<td>🧠 AI 管家层</td>
+<td>跨品牌设备的统一智能控制</td>
+<td>LLM + Function Calling</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<h3>3.2 一次完整连接的流程</h3>
+<pre class="mermaid">
+sequenceDiagram
+    participant D as 🔧 设备
+    participant C as ⛓️ TRON 合约
+    participant U as 📱 用户端
+    participant R as 🔀 中继节点
+
+    D-&gt;&gt;C: ① 上链注册身份(DID) + 连接信息
+    U-&gt;&gt;C: ② 读链：找到我有权限的设备
+    C--&gt;&gt;U: 返回设备信息 + 授权校验
+    U-&gt;&gt;D: ③ 发起 WebRTC P2P 直连(STUN打洞)
+    alt 打洞成功 (约80%)
+        D&lt;&lt;-&gt;&gt;U: ④ 点对点直连，数据不过服务器
+    else 打洞失败 (约20%)
+        U-&gt;&gt;C: 预存代币押金
+        U-&gt;&gt;R: 经中继节点转发数据
+        R-&gt;&gt;C: ⑤ 提交带用户签名的回执
+        C--&gt;&gt;R: 验签通过，结算代币奖励
+    end
+
+</pre>
+<hr>
+<h2>4. 🧠 AI 管家层：项目的皇冠 (The Crown)</h2>
+<p>这是 OmniLink 区别于所有现有方案的核心，也是我们冲击 Genesis 赛道加分的关键。</p>
+<blockquote>
+<p><strong>核心洞察</strong>：底层的去中心化通信能力，让 AI 第一次获得了一个&quot;跨厂商、统一授权&quot;的设备控制身体。它不再是某个生态的语音助手，而是真正能管理你名下全部智能设备、并代你管理链上设备授权的自主管家。<strong>这是单一厂商的 AI 永远做不到的。</strong></p>
+</blockquote>
+<p>我们把 AI 管家的能力拆成三个递进的层次：</p>
+<h3>4.1 第 1 层：统一的自然语言控制（必做）</h3>
+<ul>
+<li><strong>能力</strong>：&quot;把客厅灯调暗、门锁上、空调调到 26 度&quot;——一句话同时操控三个<strong>不同品牌</strong>的设备。</li>
+<li><strong>实现</strong>：LLM 通过 Function Calling 把自然语言解析成对各设备的标准化指令，经链上授权校验后，通过 P2P 通道下发。</li>
+<li><strong>价值</strong>：市面上的语音助手做不到跨品牌，因为它们的设备接入是封闭的；我们在底层把接入去中心化了，所以能做到。</li>
+</ul>
+<h3>4.2 第 2 层：跨设备场景编排（争取做）</h3>
+<ul>
+<li><strong>能力</strong>：&quot;我回家时，自动开灯、解锁、播放音乐&quot;——AI 把多个不同厂商的设备编排成一个联动场景。</li>
+<li><strong>价值</strong>：传统方案需要在每个 App 里手动配置 IFTTT 才能勉强实现，OmniLink 里 AI 一句话搞定。</li>
+</ul>
+<h3>4.3 第 3 层：主动式 AI 管家 / Agent（演示高潮 + 未来愿景）</h3>
+<p>AI 不只是被动听指令，而是主动观察设备数据 + 链上授权，自主做判断与行动：</p>
+<ul>
+<li>🛡️ &quot;检测到陌生人在门口长时间停留，已自动录像并提醒你。&quot;（结合团队智能门锁背景）</li>
+<li>⏳ &quot;你给访客的临时门锁权限还有 10 分钟到期，需要延长吗？&quot;</li>
+<li>🔐 AI Agent 实际在<strong>代用户管理链上的设备授权</strong>——直接命中赛事规则中&quot;AI Agent 管理链上资产/权限&quot;的范例。</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>避免 AI 层沦为花瓶</strong>：我们的 AI 价值 = <code>AI 能力 × 独有的跨厂商统一通道</code>。重点不是&quot;套了个大模型&quot;，而是&quot;AI 因为站在去中心化通信层之上，能做到单一生态 AI 做不到的事&quot;。</p>
+</blockquote>
+<hr>
+<h2>5. 🎬 演示主线：智能门锁场景 (Demo Storyline)</h2>
+<p>我们用<strong>门锁</strong>作为演示主设备——它直接关系人身与财产安全，评委一眼就懂价值，且能串起全部卖点。</p>
+<blockquote>
+<p><strong>演示脚本</strong>：</p>
+<li>一台虚拟门锁启动，自动在 TRON 链上注册身份（DID）。</li>
+<li>用户用钱包&quot;一键认领&quot;这台锁，所有权绑定上链。</li>
+<li>用户对 AI 管家说：&quot;给保洁阿姨开一个明天下午 2–4 点的门锁权限。&quot;</li>
+<li>AI 在链上签发一个<strong>带时间限制</strong>的授权；阿姨的 App（模拟另一个厂商生态）凭链上授权<strong>直连</strong>门锁。</li>
+<li>到点后授权在链上<strong>自动失效</strong>，全程无任何厂商服务器参与。</li>
+<li>（加分）AI 主动提醒：&quot;检测到一次异常的授权请求，已为你拦截。&quot;</li>
+</blockquote>
+<p>这一个演示同时展示了：<strong>跨品牌互通 · 链上授权 · P2P 直连 · AI 管家 · 时间限授权自动失效</strong>。</p>
+<hr>
+<h2>6. 🪙 去中心化中继激励 (Relay Incentive · DePIN)</h2>
+<p>P2P 直连在约 80% 的网络环境下可经 STUN 打洞成功；剩余约 20% 的严格 NAT 环境需要 TURN 中继兜底。<strong>全球所有 P2P 应用都需要中继兜底，这是网络的物理限制，而非缺陷。</strong></p>
+<p>OmniLink 的创新在于：<strong>不依赖某个厂商的中心化 TURN，而是把中继做成一个由代币激励的去中心化节点网络。</strong></p>
+<pre><code>传统模式：厂商养一堆 TURN 服务器 → 成本算进设备/订阅费 → 用户间接买单（中心化、贵）
+OmniLink：谁需要中继 → 付少量代币；谁贡献带宽 → 赚代币；平台不养服务器（去中心化、市场分摊）
+</code></pre>
+<h3>6.1 资金与信任流动</h3>
+<table>
+<thead><tr>
+<th>角色</th>
+<th>行为</th>
+<th>说明</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>💰 付费方</td>
+<td>需要中继的用户</td>
+<td>仅在打洞失败的 ~20% 情况下，用代币付费</td>
+</tr>
+<tr>
+<td>🔀 收费方</td>
+<td>贡献带宽跑节点的人</td>
+<td>运行 coturn 节点，赚取 $HTX / TRX</td>
+</tr>
+<tr>
+<td>⛓️ 结算方</td>
+<td>TRON 链上合约</td>
+<td>验证签名回执后自动放款</td>
+</tr>
+</tbody>
+</table>
+<h3>6.2 验证机制：乐观信任模型 (Optimistic Trust)</h3>
+<p>&quot;如何证明中继节点真的干了活&quot;是整个 DePIN 领域公认的世纪难题（涉及 zk 证明、TEE 可信硬件等）。MVP 阶段我们采用<strong>乐观信任 + 双向签名回执</strong>：</p>
+<ol>
+<li>用户预存押金到合约（escrow）。</li>
+<li>中继节点转发数据（基于开源 <strong>coturn</strong>，零自研）。</li>
+<li>会话结束，用户对&quot;我用了这个节点、转发了 X 流量&quot;签名，生成<strong>回执</strong>。</li>
+<li>节点提交回执到合约，合约用 <code>ecrecover</code> <strong>验签后放款</strong>。</li>
+</ol>
+<blockquote>
+<p>✅ 合约只做它最擅长的事：<strong>验证签名 + 转账</strong>，新手可控（约 2–3 天）。</p>
+<p>⚠️ <strong>已知边界（主动声明）</strong>：乐观模型下用户与节点存在合谋刷量的可能。这是当前 DePIN 的共同挑战，我们将其清晰列入 Roadmap（信誉系统、随机抽查、zk 证明），而非假装已解决。坦诚边界反而是路演加分项。</p>
+</blockquote>
+<h3>6.3 成本说明（重要）</h3>
+<ul>
+<li><strong>黑客松演示成本 ≈ 0</strong>：STUN 用公共免费服务；coturn 跑在一台廉价 VPS（或免费额度）；结算用 <strong>TRON 测试网代币</strong>（免费领取），非真实资金。</li>
+<li>用户&quot;为演示付费&quot;的动作，全程用测试币经过我们的合约完成，既展示真实闭环，又不花真钱。</li>
+</ul>
+<hr>
+<h2>7. 🔍 竞品分析与差异化 (Competitive Analysis)</h2>
+<p>我们的方向已被市场验证（有大资本投入），但<strong>没有任何项目把我们这个完整组合做出来</strong>——这是选题的理想状态。</p>
+<table>
+<thead><tr>
+<th>能力</th>
+<th>IoTeX / peaq&lt;br/&gt;(机器经济/DePIN)</th>
+<th>Nabto / Husarnet&lt;br/&gt;(P2P IoT)</th>
+<th><strong>OmniLink</strong></th>
+</tr></thead>
+<tbody>
+<tr>
+<td>链上设备身份 (DID)</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>链上授权 / 跨厂商互通</td>
+<td>部分</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>真 · P2P 数据直连</td>
+<td>❌（只上链数据）</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>去中心化中继激励</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>AI 跨设备管家</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>差异化定位</strong>：IoTeX 验证了&quot;设备链上身份&quot;的价值，Nabto 验证了&quot;P2P 直连&quot;的需求。OmniLink 第一次把<strong>链上身份授权 + P2P 直连 + 去中心化中继 + AI 管家</strong>缝合成一个面向普通用户的<strong>消费级完整体验</strong>。机器经济类项目偏底层基础设施，P2P 类项目缺去中心化信任——OmniLink 站在中间，做端到端可演示的产品。</p>
+</blockquote>
+<blockquote>
+<p>📌 <strong>路演话术</strong>：主动引用竞品（&quot;IoTeX 验证了 X，Nabto 验证了 Y，我们首次把两者 + AI 缝在一起&quot;），比假装&quot;全球首创&quot;更可信、更显专业。</p>
+</blockquote>
+<hr>
+<h2>8. 🛠️ 技术选型与边界 (Tech Stack &amp; Scope)</h2>
+<p>清晰地区分&quot;拿现成的&quot;和&quot;自己写的&quot;，是新手 3 周不翻车的关键。</p>
+<h3>8.1 拿现成的（零开发量）</h3>
+<table>
+<thead><tr>
+<th>组件</th>
+<th>选型</th>
+<th>用途</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>STUN</td>
+<td>公共 STUN（如谷歌）</td>
+<td>处理 ~80% 的 P2P 打洞，免费</td>
+</tr>
+<tr>
+<td>TURN 中继</td>
+<td><strong>coturn</strong>（开源，docker 部署）</td>
+<td>自建节点，演示去中心化中继</td>
+</tr>
+<tr>
+<td>TURN 兜底</td>
+<td>Cloudflare Realtime TURN（免费额度）</td>
+<td>防现场网络翻车的安全网（不作为卖点）</td>
+</tr>
+<tr>
+<td>P2P 库</td>
+<td>WebRTC + <code>simple-peer</code></td>
+<td>建立点对点数据通道</td>
+</tr>
+<tr>
+<td>链</td>
+<td>TRON 测试网（Nile/Shasta）</td>
+<td>部署合约，测试币免费领</td>
+</tr>
+<tr>
+<td>合约交互</td>
+<td>TronWeb / TronLink 钱包</td>
+<td>前端连接合约与钱包</td>
+</tr>
+<tr>
+<td>AI</td>
+<td>LLM + Function Calling</td>
+<td>自然语言 → 设备指令</td>
+</tr>
+</tbody>
+</table>
+<h3>8.2 必须自己写（项目创新点）</h3>
+<ol>
+<li><strong>设备身份与授权合约</strong>（Solidity / TRON）：注册 DID、绑定所有者、授权 / 撤销（含时间限制）。</li>
+<li><strong>中继注册与激励结算合约</strong>：节点注册、押金托管、签名回执验证、代币结算。</li>
+<li><strong>AI 控制层</strong>：自然语言解析 → 指令路由 → 跨设备执行。</li>
+<li><strong>客户端 + 虚拟设备</strong>：把上述串成可演示的闭环。</li>
+</ol>
+<h3>8.3 明确不做（避免天坑）</h3>
+<ul>
+<li>❌ 真实 IoT 硬件固件对接（用软件模拟&quot;虚拟设备&quot;，最多用一块 ESP32 做点缀）。</li>
+<li>❌ 自研 TURN / 数据转发（直接用 coturn）。</li>
+<li>❌ 中继防作弊的密码学验证（zk/TEE，列入 Roadmap）。</li>
+<li>❌ 复杂多轮对话 / 长期记忆系统（非评分重点）。</li>
+</ul>
+<hr>
+<h2>9. 📅 三周开发计划 (3-Week Plan)</h2>
+<table>
+<thead><tr>
+<th>周次</th>
+<th>目标</th>
+<th>关键交付物</th>
+</tr></thead>
+<tbody>
+<tr>
+<td><strong>第 1 周</strong>&lt;br/&gt;打通地基</td>
+<td>验证最高风险环节</td>
+<td>① 两个 Node 进程用 WebRTC 直连发消息（与链解耦先跑通）&lt;br/&gt;② TRON 测试网部署设备注册/授权合约骨架&lt;br/&gt;③ 虚拟设备能上链注册</td>
+</tr>
+<tr>
+<td><strong>第 2 周</strong>&lt;br/&gt;串联闭环</td>
+<td>链 + P2P + 授权打通</td>
+<td>① 客户端读链发现设备 + 校验授权&lt;br/&gt;② signaling 信息走链上，P2P 接通&lt;br/&gt;③ 中继激励合约（押金 + 签名结算）+ coturn 节点注册上链</td>
+</tr>
+<tr>
+<td><strong>第 3 周</strong>&lt;br/&gt;AI 与打磨</td>
+<td>AI 管家 + 演示 + 提交物</td>
+<td>① AI 自然语言跨设备控制&lt;br/&gt;② 门锁演示主线 + 一个主动场景&lt;br/&gt;③ 录 Demo 视频、整理开源仓库、完善文档</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⏰ <strong>风险前置原则</strong>：第 1 周务必先单独验证 WebRTC signaling（新手最易卡壳处）。先确认 P2P 通道能通，再把它接到链上。</p>
+</blockquote>
+<hr>
+<h2>10. 👥 团队分工 (Team · 3人)</h2>
+<table>
+<thead><tr>
+<th>角色</th>
+<th>负责人</th>
+<th>职责</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>⛓️ 合约 + Web3</td>
+<td>你（有合约经验）</td>
+<td>TRON 合约、钱包对接、签名验签结算</td>
+</tr>
+<tr>
+<td>🔧 后端 + 设备</td>
+<td>队员 A</td>
+<td>虚拟设备、coturn 部署、signaling、P2P 通道</td>
+</tr>
+<tr>
+<td>🧠 AI + 前端</td>
+<td>队员 B</td>
+<td>AI 控制层、用户端 App、演示界面</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>11. ⚖️ 风险与对策 (Risks)</h2>
+<table>
+<thead><tr>
+<th>风险</th>
+<th>等级</th>
+<th>对策</th>
+</tr></thead>
+<tbody>
+<tr>
+<td>WebRTC signaling 调试耗时</td>
+<td>🔴 高</td>
+<td>第 1 周优先单独跑通，与链解耦</td>
+</tr>
+<tr>
+<td>现场网络导致 P2P 连不上</td>
+<td>🟡 中</td>
+<td>coturn + Cloudflare 双兜底；演示可同网络</td>
+</tr>
+<tr>
+<td>中继防作弊被质疑</td>
+<td>🟡 中</td>
+<td>主动声明乐观模型边界 + 清晰 Roadmap</td>
+</tr>
+<tr>
+<td>范围膨胀做不完</td>
+<td>🔴 高</td>
+<td>死守&quot;明确不做&quot;清单，AI 只做第 1 层 + 一个主动场景</td>
+</tr>
+<tr>
+<td>安全性（钱包/授权）</td>
+<td>🟡 中</td>
+<td>测试网演示；授权合约做基础权限校验</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>🔐 <strong>安全提示</strong>：MVP 在测试网演示，不涉及真实资产。若未来上主网，设备授权、私钥管理、中继合谋是必须加固的安全重点。</p>
+</blockquote>
+<hr>
+<h2>12. ✅ 提交物清单 (Deliverables)</h2>
+<p>赛事要求：<strong>开源代码仓库 + Demo 视频 + 项目文档</strong>，且代码须为活动期间原创、最终开源，并使用至少一项 HTX 生态资源。</p>
+<ul>
+<li>[ ] 📦 开源代码仓库（GitHub，含 README 与部署说明）</li>
+<li>[ ] 🎥 Demo 视频（门锁演示主线，3–5 分钟）</li>
+<li>[ ] 📄 项目文档（本方案即可作为基础，用 <code>docman</code> 生成 HTML）</li>
+<li>[ ] ⛓️ HTX 生态资源使用证明（TRON 合约地址 + $HTX/TRX 激励模型）</li>
+<li>[ ] 🪙 测试网合约部署记录</li>
+</ul>
+<hr>
+<blockquote>
+<p><strong>📍 下一步</strong>：本方案确定后，可用 <code>docman</code> 生成精美 HTML 预览，并按需同步至飞书作为团队协作蓝本。</p>
+</blockquote>
+<blockquote>
+<p><em>本文档为 HTX Genesis 黑客松立项材料，内容将随开发推进持续迭代。</em></p>
+</blockquote>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({startOnLoad:true,theme:'default'});</script>
+</body>
+</html>
