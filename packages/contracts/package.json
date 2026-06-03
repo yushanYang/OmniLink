@@ -7,6 +7,7 @@
   "scripts": {
     "compile": "node scripts/compile.js",
     "deploy": "node scripts/deploy.js",
+    "deploy-local": "node scripts/deploy-local.js",
     "test": "node --test"
   },
   "dependencies": {
@@ -14,6 +15,8 @@
     "tronweb": "^6.0.0"
   },
   "devDependencies": {
+    "ganache": "^7.4.4",
+    "ethers": "^6.9.1",
     "solc": "^0.8.26"
   }
 }
