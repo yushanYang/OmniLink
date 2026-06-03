@@ -73,3 +73,28 @@ npm run web         # 终端4: 用户端 http://localhost:5173
 - [ ] 项目文档
 - [ ] HTX 生态资源证明（TRON 合约地址 + 激励模型）
 - [ ] 测试网合约部署记录
+
+## 前端工作台
+
+`packages/web` 已提供可演示的前端工作台，包含钱包连接、设备列表、授权检查、P2P 控制、AI Agent UI、联调控制台、一键 Demo Flow 和中英文切换。
+
+```bash
+npm install
+npm run dev:web
+```
+
+默认使用 mock 模式；如需接真实服务，在 `packages/web/.env.local` 配置：
+
+```bash
+VITE_OMNILINK_REGISTRY_API=http://127.0.0.1:7001
+VITE_OMNILINK_PEER_API=http://127.0.0.1:7002
+VITE_OMNILINK_AI_API=http://127.0.0.1:7003
+```
+
+接口与后端实现文档：
+
+- `docs/api-contracts.md`
+- `docs/backend-api-implementation.md`
+- `packages/web/.env.example`
+
+项目本地开发规则见 `.project-skills.md`。
