@@ -11,6 +11,7 @@
     "signaling": "npm run start -w @omnilink/device --if-present -- signaling",
     "device": "npm run device -w @omnilink/device",
     "ai": "npm run start -w @omnilink/ai",
+    "ai:serve": "npm run serve -w @omnilink/ai",
     "web": "npm run dev -w @omnilink/web",
     "dev:web": "npm --workspace packages/web run dev",
     "build:web": "npm --workspace packages/web run build",

@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 import { askAgent } from "../lib/aiClient";
 import { sendDeviceCommand } from "../lib/peer";
 
-export function AgentPanel({ devices, onEvent, t }) {
+export function AgentPanel({ wallet, devices, onEvent, t }) {
   const [message, setMessage] = useState(t("agent.defaultMessage"));
   const [agentState, setAgentState] = useState({
     reply: t("agent.ready"),
     toolCall: null,
+    toolResults: [],
   });
   const [isThinking, setIsThinking] = useState(false);
 
@@ -24,8 +25,12 @@ export function AgentPanel({ devices, onEvent, t }) {
     if (!message.trim()) return;
 
     setIsThinking(true);
-    const result = await askAgent({ message, devices });
+    const result = await askAgent({ message, devices, account: wallet?.address });
     setAgentState(result);
+    onEvent({
+      title: t("demo.agentReplied"),
+      detail: `${result.source ?? "agent"}${result.model ? ` · ${result.model}` : ""}`,
+    });
     if (result.fallbackReason) {
       onEvent({
         title: t("agent.fallbackTitle"),
@@ -58,6 +63,9 @@ export function AgentPanel({ devices, onEvent, t }) {
         <p>{agentState.reply}</p>
         {agentState.toolCall && (
           <pre>{JSON.stringify(agentState.toolCall, null, 2)}</pre>
+        )}
+        {agentState.toolResults?.length > 0 && (
+          <pre>{JSON.stringify(agentState.toolResults, null, 2)}</pre>
         )}
       </div>
 

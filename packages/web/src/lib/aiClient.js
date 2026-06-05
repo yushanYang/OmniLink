@@ -1,18 +1,21 @@
 import { apiConfig, buildUrl } from "./config";
 import { requestJson } from "./http";
 
-export async function askAgent({ message, devices }) {
+export async function askAgent({ message, devices, account }) {
   const url = buildUrl(apiConfig.aiBaseUrl, "/chat");
   if (url) {
     try {
       const result = await requestJson(url, {
         method: "POST",
-        body: JSON.stringify({ message, devices }),
+        body: JSON.stringify({ message, devices, account }),
       });
 
       return {
         reply: result.reply ?? "Agent returned an empty reply.",
         toolCall: result.toolCall ?? null,
+        toolCalls: result.toolCalls ?? [],
+        toolResults: result.toolResults ?? [],
+        model: result.model,
         source: "ai-api",
       };
     } catch (error) {

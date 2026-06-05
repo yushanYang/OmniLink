@@ -7,7 +7,8 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/cli.js",
-    "test": "node --test"
+    "serve": "node src/server.js",
+    "test": "node --test --experimental-test-isolation=none"
   },
   "dependencies": {
     "dotenv": "^16.4.5",
