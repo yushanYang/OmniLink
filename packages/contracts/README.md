@@ -33,7 +33,43 @@ npm run compile -w @omnilink/contracts
 npm run deploy -w @omnilink/contracts
 ```
 
-部署成功后地址会写入 `deployments/nile.json`，请同步填入根目录 `.env` 的 `DEVICE_REGISTRY_ADDRESS`。
+### 本地联调部署
+
+如果你想先在本地进行联调，可以直接部署到本地 Ganache：
+
+```bash
+npm run deploy-local -w @omnilink/contracts
+```
+
+本地部署结果会写入 `packages/contracts/deployments/local.json`，其中包含本地节点地址与合约地址。
+
+部署成功后地址会写入 `deployments/nile.json`，如果项目根目录存在 `.env` 文件，部署脚本会自动回填 `DEVICE_REGISTRY_ADDRESS`。
+
+## 前端 / AI / 设备层使用示例
+
+前端、AI、设备层统一引用 `packages/contracts/build/DeviceRegistry.json` 的 ABI。
+
+```js
+import abi from "@omnilink/contracts/build/DeviceRegistry.json";
+
+const contract = await tronWeb.contract(abi.abi, DEVICE_REGISTRY_ADDRESS);
+const hasAccess = await contract.checkAccess(deviceId, userAddress).call();
+```
+
+如果你想在 AI /控制层做链上授权校验：
+
+```js
+const allowed = await registry.checkAccess(deviceId, userAddress).call();
+if (!allowed) {
+  return { ok: false, error: "unauthorized" };
+}
+```
+
+## 测试
+
+```bash
+npm test -w @omnilink/contracts
+```
 
 ## 获取测试币
 

@@ -28,6 +28,7 @@ function main() {
     sources: loadSources(),
     settings: {
       optimizer: { enabled: true, runs: 200 },
+      evmVersion: "istanbul",
       outputSelection: { "*": { "*": ["abi", "evm.bytecode.object"] } },
     },
   };

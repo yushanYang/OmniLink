@@ -16,7 +16,7 @@ pragma solidity ^0.8.20;
 contract DeviceRegistry {
     struct Device {
         string deviceId;     // 设备 DID（链下生成的唯一标识）
-        bytes pubkey;        // 设备公钥（用于 P2P 握手校验）
+        string pubkey;       // 设备公钥（文本形式，可用 hex/base58 表示）
         address owner;       // 所有者地址；address(0) 表示尚未认领
         string connInfo;     // 连接信息（如 signaling 房间号 / 多地址）
         bool registered;     // 是否已注册
@@ -48,17 +48,16 @@ contract DeviceRegistry {
     /**
      * @notice 设备自注册身份(DID)。任何人可注册，但所有者初始为空，需后续认领。
      */
-    function registerDevice(string calldata deviceId, bytes calldata pubkey, string calldata connInfo) external {
+    function registerDevice(string calldata deviceId, string calldata pubkey, string calldata connInfo) external {
         bytes32 key = _key(deviceId);
         require(!devices[key].registered, "device already registered");
 
-        devices[key] = Device({
-            deviceId: deviceId,
-            pubkey: pubkey,
-            owner: address(0),
-            connInfo: connInfo,
-            registered: true
-        });
+        Device storage device = devices[key];
+        device.deviceId = deviceId;
+        device.pubkey = pubkey;
+        device.owner = address(0);
+        device.connInfo = connInfo;
+        device.registered = true;
         deviceKeys.push(key);
 
         emit DeviceRegistered(key, deviceId, msg.sender);
@@ -123,7 +122,7 @@ contract DeviceRegistry {
     function getDevice(string calldata deviceId)
         external
         view
-        returns (string memory id, bytes memory pubkey, address owner, string memory connInfo, bool registered)
+        returns (string memory id, string memory pubkey, address owner, string memory connInfo, bool registered)
     {
         Device storage d = devices[_key(deviceId)];
         return (d.deviceId, d.pubkey, d.owner, d.connInfo, d.registered);

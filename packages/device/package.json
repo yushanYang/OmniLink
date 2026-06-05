@@ -8,13 +8,16 @@
   "scripts": {
     "signaling": "node src/signaling-server.js",
     "device": "node src/lock.js",
+    "client": "node src/client-example.js",
     "smoke": "node src/p2p-smoke.js",
+    "test": "node --test",
     "start": "node src/lock.js"
   },
   "dependencies": {
     "@roamhq/wrtc": "^0.8.0",
     "dotenv": "^16.4.5",
     "simple-peer": "^9.11.1",
+    "tronweb": "^6.0.0",
     "ws": "^8.18.0"
   }
 }

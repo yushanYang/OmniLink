@@ -53,7 +53,20 @@ async function main() {
     JSON.stringify({ DeviceRegistry: address, network: fullNode, deployedAt: new Date().toISOString() }, null, 2)
   );
   console.log("→ 已写入 deployments/nile.json");
-  console.log("→ 请把该地址填入 .env 的 DEVICE_REGISTRY_ADDRESS");
+
+  const envPath = path.resolve(process.cwd(), ".env");
+  if (fs.existsSync(envPath)) {
+    let envText = fs.readFileSync(envPath, "utf8");
+    if (/^DEVICE_REGISTRY_ADDRESS=/m.test(envText)) {
+      envText = envText.replace(/^DEVICE_REGISTRY_ADDRESS=.*$/m, `DEVICE_REGISTRY_ADDRESS=${address}`);
+    } else {
+      envText += `\nDEVICE_REGISTRY_ADDRESS=${address}\n`;
+    }
+    fs.writeFileSync(envPath, envText, "utf8");
+    console.log("→ 已回填 .env 的 DEVICE_REGISTRY_ADDRESS");
+  } else {
+    console.log("→ 未找到 .env，部署地址请手动回填到 .env 的 DEVICE_REGISTRY_ADDRESS");
+  }
 }
 
 main().catch((err) => {
