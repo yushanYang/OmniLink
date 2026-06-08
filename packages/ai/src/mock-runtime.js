@@ -4,8 +4,8 @@ const DEFAULT_USER = "demo-owner";
 
 const defaultDevices = [
   {
-    deviceId: "lock-lab-001",
-    id: "lock-lab-001",
+    deviceId: "omnilink-lock-001",
+    id: "omnilink-lock-001",
     name: "Lab Door Lock",
     type: "Smart Lock",
     access: "granted",

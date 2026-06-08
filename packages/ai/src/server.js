@@ -1,11 +1,19 @@
 import http from "node:http";
 import { createButler, createMockRuntime, DeviceRouter } from "./index.js";
+import { createP2PExecutor } from "./p2p-executor.js";
 import { loadEnv } from "./env.js";
 
 loadEnv();
 
 const PORT = Number(process.env.AI_PORT || 8787);
 const HOST = process.env.AI_HOST || "0.0.0.0";
+
+// AI_EXECUTOR=p2p 时使用真实 WebRTC P2P 下发；否则走 mock
+const USE_P2P = (process.env.AI_EXECUTOR || "mock").toLowerCase() === "p2p";
+const p2pExecutor = USE_P2P ? createP2PExecutor({
+  signalingUrl: process.env.SIGNALING_URL || "ws://localhost:8080",
+  timeoutMs: Number(process.env.AI_P2P_TIMEOUT_MS || 12000),
+}) : null;
 
 const server = http.createServer(async (req, res) => {
   setCorsHeaders(res);
@@ -21,9 +29,55 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, {
         ok: true,
         service: "OmniLink AI API",
+        executor: USE_P2P ? "p2p" : "mock",
         mode: process.env.AI_MODE || "auto",
         openaiKeyConfigured: hasUsableApiKey(process.env.OPENAI_API_KEY),
       });
+      return;
+    }
+
+    if (req.method === "GET" && req.url === "/devices") {
+      const runtime = createMockRuntime();
+      const devices = await runtime.listDevices({ userAddress: "demo-owner" });
+      sendJson(res, 200, { ok: true, devices });
+      return;
+    }
+
+    if (req.method === "POST" && req.url === "/access/check") {
+      const body = await readJson(req);
+      const runtime = createMockRuntime();
+      const allowed = await runtime.checkAccess(body.deviceId, body.walletAddress);
+      sendJson(res, 200, { ok: true, allowed, walletAddress: body.walletAddress, deviceId: body.deviceId, expiresAt: allowed ? "permanent" : null });
+      return;
+    }
+
+    if (req.method === "POST" && req.url === "/access/grant") {
+      const body = await readJson(req);
+      const runtime = createMockRuntime();
+      const result = await runtime.grantAccess({ deviceId: body.deviceId, userAddress: body.walletAddress, durationHours: body.durationHours });
+      sendJson(res, 200, { ok: true, txId: result.expiresAt ? `mock-tx-${Date.now().toString(16)}` : null, ...result });
+      return;
+    }
+
+    if (req.method === "POST" && req.url === "/commands") {
+      const body = await readJson(req);
+      const { deviceId, action } = body;
+      if (!deviceId || !action) {
+        sendJson(res, 400, { ok: false, error: "missing deviceId or action" });
+        return;
+      }
+      if (USE_P2P) {
+        try {
+          const result = await p2pExecutor(deviceId, { action });
+          sendJson(res, 200, { ok: true, ...result });
+        } catch (err) {
+          sendJson(res, 504, { ok: false, error: err.message });
+        }
+      } else {
+        const runtime = createMockRuntime();
+        const result = await runtime.executor(deviceId, { action });
+        sendJson(res, 200, result);
+      }
       return;
     }
 
@@ -42,6 +96,7 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(PORT, HOST, () => {
   console.log(`OmniLink AI API listening on http://${HOST}:${PORT}`);
+  console.log(`Executor: ${USE_P2P ? "P2P (WebRTC via signaling)" : "Mock (in-memory)"}`);
   console.log(`Health: http://localhost:${PORT}/health`);
   console.log(`Chat:   POST http://localhost:${PORT}/chat`);
 });
@@ -49,7 +104,19 @@ server.listen(PORT, HOST, () => {
 async function handleChat(body) {
   const devices = Array.isArray(body.devices) ? body.devices : undefined;
   const runtime = createMockRuntime({ devices });
-  const router = new DeviceRouter(runtime);
+
+  // P2P 模式：用真实 executor 替换 mock executor，其余保持 mock runtime
+  const routerOpts = USE_P2P
+    ? {
+        ...runtime,
+        executor: async (deviceId, command, context) => {
+          console.log(`[p2p] sending ${command.action} to ${deviceId}`);
+          return p2pExecutor(deviceId, command);
+        },
+      }
+    : runtime;
+
+  const router = new DeviceRouter(routerOpts);
   const butler = createButler({
     router,
     mode: process.env.AI_MODE || "auto",

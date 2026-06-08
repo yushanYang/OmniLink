@@ -1,6 +1,6 @@
 export const mockDevices = [
   {
-    id: "lock-lab-001",
+    id: "omnilink-lock-001",
     name: "Lab Door Lock",
     type: "Smart Lock",
     owner: "TP5x...91aC",

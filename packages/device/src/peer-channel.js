@@ -128,7 +128,8 @@ export function createPeerChannel({
     socket.on("message", (raw) => {
       const msg = JSON.parse(raw.toString());
       if (msg.type === "signal") {
-        p.signal(msg.data);
+        // Guard: ignore late signals after peer is destroyed (e.g. initiator disconnected)
+        if (!p.destroyed) p.signal(msg.data);
       }
     });
 

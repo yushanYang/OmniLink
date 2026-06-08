@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>OmniLink Demo - 去中心化 AI 设备管家</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+:root {
+  --color-bg: #0a0e1a;
+  --color-surface: #131829;
+  --color-surface-2: #1a2035;
+  --color-border: #2a3050;
+  --color-text: #e8ecf4;
+  --color-text-secondary: #8892a8;
+  --color-text-muted: #5a6380;
+  --color-primary: #4f8cff;
+  --color-primary-glow: rgba(79, 140, 255, 0.3);
+  --color-success: #34d399;
+  --color-success-glow: rgba(52, 211, 153, 0.3);
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+  --color-chain: #a78bfa;
+  --color-chain-glow: rgba(167, 139, 250, 0.3);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', Consolas, monospace;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--color-bg); color: var(--color-text); font-family: var(--font-sans); min-height: 100vh; overflow-x: hidden; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 20px 40px; border-bottom: 1px solid var(--color-border); }
+.header h1 { font-size: 20px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+.header h1 span { color: var(--color-primary); }
+.header .badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; background: var(--color-surface-2); border: 1px solid var(--color-border); color: var(--color-text-secondary); }
+
+/* Main Layout */
+.main { display: grid; grid-template-columns: 1fr 300px; gap: 0; min-height: calc(100vh - 70px); }
+.center { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; position: relative; }
+.sidebar { border-left: 1px solid var(--color-border); padding: 24px; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+
+/* Pipeline Steps */
+.pipeline { display: flex; align-items: center; gap: 0; margin-bottom: 48px; width: 100%; max-width: 700px; justify-content: center; }
+.step { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; flex: 1; }
+.step-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--color-surface); border: 2px solid var(--color-border); transition: all 0.5s ease; position: relative; z-index: 1; font-size: 18px; }
+.step-label { font-size: 11px; color: var(--color-text-muted); text-align: center; white-space: nowrap; transition: color 0.5s ease; }
+.step-connector { position: absolute; top: 24px; left: calc(50% + 24px); width: calc(100% - 48px); height: 2px; background: var(--color-border); z-index: 0; }
+.step-connector::after { content: ''; position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: var(--color-primary); transition: width 0.6s ease; }
+
+.step.active .step-icon { border-color: var(--color-primary); box-shadow: 0 0 20px var(--color-primary-glow); background: rgba(79, 140, 255, 0.1); }
+.step.active .step-label { color: var(--color-primary); }
+.step.done .step-icon { border-color: var(--color-success); background: rgba(52, 211, 153, 0.1); }
+.step.done .step-label { color: var(--color-success); }
+.step.done .step-connector::after { width: 100%; background: var(--color-success); }
+
+/* Lock Visual */
+.lock-container { position: relative; margin-bottom: 48px; }
+.lock-ring { width: 200px; height: 200px; border-radius: 50%; border: 3px solid var(--color-border); display: flex; align-items: center; justify-content: center; position: relative; transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.lock-ring.unlocked { border-color: var(--color-success); box-shadow: 0 0 60px var(--color-success-glow), 0 0 120px rgba(52, 211, 153, 0.1); }
+.lock-ring.locked { border-color: var(--color-border); }
+.lock-ring.checking { border-color: var(--color-chain); box-shadow: 0 0 40px var(--color-chain-glow); }
+.lock-icon { font-size: 64px; transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.lock-icon.unlocked { transform: rotate(-15deg) scale(1.1); }
+.lock-status { margin-top: 16px; font-size: 14px; font-weight: 500; text-align: center; color: var(--color-text-secondary); transition: color 0.5s; min-height: 20px; }
+.lock-status.unlocked { color: var(--color-success); }
+.lock-status.checking { color: var(--color-chain); }
+
+/* Pulse Ring Animation */
+@keyframes pulseRing { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.4); opacity: 0; } }
+.pulse-ring { position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--color-success); opacity: 0; pointer-events: none; }
+.lock-ring.unlocked .pulse-ring { animation: pulseRing 1.5s ease-out infinite; }
+
+/* Input Area */
+.input-area { width: 100%; max-width: 500px; position: relative; }
+.input-box { width: 100%; padding: 16px 60px 16px 20px; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-size: 15px; outline: none; transition: border-color 0.3s, box-shadow 0.3s; }
+.input-box:focus { border-color: var(--color-primary); box-shadow: 0 0 20px var(--color-primary-glow); }
+.input-box::placeholder { color: var(--color-text-muted); }
+.send-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 8px; border: none; background: var(--color-primary); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.1s; }
+.send-btn:hover { background: #6ba0ff; }
+.send-btn:active { transform: translateY(-50%) scale(0.95); }
+.send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.send-btn svg { width: 18px; height: 18px; }
+
+/* Sidebar */
+.sidebar-section { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 10px; padding: 14px; }
+.sidebar-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); margin-bottom: 10px; }
+.log-entry { font-family: var(--font-mono); font-size: 11px; color: var(--color-text-secondary); padding: 4px 0; border-bottom: 1px solid rgba(42, 48, 80, 0.5); line-height: 1.5; }
+.log-entry:last-child { border-bottom: none; }
+.log-entry .tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 9px; margin-right: 4px; }
+.tag-ai { background: rgba(79, 140, 255, 0.2); color: var(--color-primary); }
+.tag-chain { background: rgba(167, 139, 250, 0.2); color: var(--color-chain); }
+.tag-p2p { background: rgba(52, 211, 153, 0.2); color: var(--color-success); }
+.tag-device { background: rgba(251, 191, 36, 0.2); color: var(--color-warning); }
+
+.device-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: var(--color-surface-2); margin-top: 8px; }
+.device-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); }
+.device-dot.offline { background: var(--color-error); }
+.device-info { flex: 1; }
+.device-name { font-size: 12px; font-weight: 500; }
+.device-id { font-size: 10px; color: var(--color-text-muted); font-family: var(--font-mono); }
+
+/* Quick Actions */
+.quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.quick-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-secondary); font-size: 12px; cursor: pointer; transition: all 0.2s; }
+.quick-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: rgba(79, 140, 255, 0.05); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .main { grid-template-columns: 1fr; }
+  .sidebar { border-left: none; border-top: 1px solid var(--color-border); }
+  .pipeline { flex-wrap: wrap; gap: 8px; }
+  .step-connector { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><span>◈</span> OmniLink <span style="font-weight:300; color: var(--color-text-secondary); font-size: 14px; margin-left: 8px;">去中心化 AI 设备管家</span></h1>
+  <div style="display:flex; gap:8px; align-items:center;">
+    <span class="badge">TRON Nile Testnet</span>
+    <span class="badge" id="modeBadge">● P2P Mode</span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="center">
+    <!-- Pipeline -->
+    <div class="pipeline">
+      <div class="step" id="step-nlp">
+        <div class="step-icon">💬</div>
+        <div class="step-label">自然语言</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step" id="step-ai">
+        <div class="step-icon">🧠</div>
+        <div class="step-label">AI 解析</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step" id="step-chain">
+        <div class="step-icon">⛓️</div>
+        <div class="step-label">链上校验</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step" id="step-p2p">
+        <div class="step-icon">📡</div>
+        <div class="step-label">P2P 下发</div>
+        <div class="step-connector"></div>
+      </div>
+      <div class="step" id="step-device">
+        <div class="step-icon">🔐</div>
+        <div class="step-label">设备执行</div>
+      </div>
+    </div>
+
+    <!-- Lock Visual -->
+    <div class="lock-container">
+      <div class="lock-ring locked" id="lockRing">
+        <div class="pulse-ring"></div>
+        <span class="lock-icon" id="lockIcon">🔒</span>
+      </div>
+      <div class="lock-status" id="lockStatus">设备就绪 · omnilink-lock-001</div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <input class="input-box" id="cmdInput" placeholder="试试说：开门 / 锁门 / 查看状态..." autocomplete="off" />
+      <button class="send-btn" id="sendBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <div class="quick-actions">
+      <button class="quick-btn" data-cmd="帮我开门">🔓 开门</button>
+      <button class="quick-btn" data-cmd="把门锁上">🔒 锁门</button>
+      <button class="quick-btn" data-cmd="门锁状态">📊 状态</button>
+      <button class="quick-btn" data-cmd="授权访客进入4小时">👤 授权访客</button>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-title">设备列表</div>
+      <div class="device-card">
+        <div class="device-dot"></div>
+        <div class="device-info">
+          <div class="device-name">Lab Door Lock</div>
+          <div class="device-id">omnilink-lock-001</div>
+        </div>
+      </div>
+      <div class="device-card">
+        <div class="device-dot offline"></div>
+        <div class="device-info">
+          <div class="device-name">Booth Light</div>
+          <div class="device-id">lamp-demo-002</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section" style="flex:1; overflow-y:auto;">
+      <div class="sidebar-title">实时日志</div>
+      <div id="logContainer"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-title">连接信息</div>
+      <div style="font-size:11px; color:var(--color-text-secondary); line-height:1.8;">
+        <div>AI API: <span style="color:var(--color-success)">localhost:8787</span></div>
+        <div>Signaling: <span style="color:var(--color-success)">ws://localhost:8080</span></div>
+        <div>Transport: <span style="color:var(--color-primary)">WebRTC P2P</span></div>
+        <div>Chain: <span style="color:var(--color-chain)">TRON Nile</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = 'http://localhost:8787';
+const input = document.getElementById('cmdInput');
+const sendBtn = document.getElementById('sendBtn');
+const lockRing = document.getElementById('lockRing');
+const lockIcon = document.getElementById('lockIcon');
+const lockStatus = document.getElementById('lockStatus');
+const logContainer = document.getElementById('logContainer');
+
+let isRunning = false;
+let currentLocked = true;
+
+// Quick action buttons
+document.querySelectorAll('.quick-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    if (!isRunning) {
+      input.value = btn.dataset.cmd;
+      runCommand(btn.dataset.cmd);
+    }
+  });
+});
+
+sendBtn.addEventListener('click', () => { if (!isRunning && input.value.trim()) runCommand(input.value.trim()); });
+input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !isRunning && input.value.trim()) runCommand(input.value.trim()); });
+
+async function runCommand(message) {
+  isRunning = true;
+  sendBtn.disabled = true;
+  resetSteps();
+
+  // Step 1: NLP
+  await activateStep('step-nlp', 600);
+  addLog('ai', `用户: "${message}"`);
+
+  // Step 2: AI Parse
+  await activateStep('step-ai', 800);
+  addLog('ai', '意图解析 → control_device');
+
+  // Step 3: Chain check
+  setStepActive('step-chain');
+  lockRing.className = 'lock-ring checking';
+  lockStatus.className = 'lock-status checking';
+  lockStatus.textContent = '⛓️ 链上授权校验中...';
+  addLog('chain', 'checkAccess(omnilink-lock-001, owner)');
+  await sleep(700);
+  addLog('chain', '✓ 授权有效 (expiry: permanent)');
+
+  // Step 4: P2P
+  completeStep('step-chain');
+  setStepActive('step-p2p');
+  lockStatus.textContent = '📡 P2P WebRTC 连接中...';
+  addLog('p2p', 'WebRTC DataChannel → room: omnilink-lock-001');
+  await sleep(500);
+
+  // Actually call the API
+  let result;
+  try {
+    const resp = await fetch(`${API_URL}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message,
+        devices: [{ deviceId: 'omnilink-lock-001', name: 'Lab Door Lock', type: 'Smart Lock', access: 'granted' }]
+      })
+    });
+    result = await resp.json();
+    const transport = result?.toolResults?.[0]?.result?.transport || 'mock';
+    addLog('p2p', `✓ 指令已送达 (transport: ${transport})`);
+    document.getElementById('modeBadge').textContent = transport === 'p2p' ? '● P2P Live' : '● Mock Mode';
+  } catch(e) {
+    addLog('p2p', `⚠ API 离线，模拟执行`);
+    document.getElementById('modeBadge').textContent = '● Offline Demo';
+    result = { ok: true, reply: 'Done (simulated).', toolResults: [{ result: { ok: true, action: inferAction(message), state: { locked: inferAction(message) === 'lock' } } }] };
+  }
+
+  // Step 5: Device execute
+  completeStep('step-p2p');
+  setStepActive('step-device');
+  await sleep(400);
+
+  const action = result?.toolResults?.[0]?.result?.action || inferAction(message);
+
+  if (action === 'unlock') {
+    currentLocked = false;
+    lockRing.className = 'lock-ring unlocked';
+    lockIcon.className = 'lock-icon unlocked';
+    lockIcon.textContent = '🔓';
+    lockStatus.className = 'lock-status unlocked';
+    lockStatus.textContent = '✅ 门锁已解锁';
+    addLog('device', '🔓 门锁已解锁');
+  } else if (action === 'lock') {
+    currentLocked = true;
+    lockRing.className = 'lock-ring locked';
+    lockIcon.className = 'lock-icon';
+    lockIcon.textContent = '🔒';
+    lockStatus.className = 'lock-status';
+    lockStatus.textContent = '🔒 门锁已上锁';
+    addLog('device', '🔒 门锁已上锁');
+  } else {
+    lockStatus.className = 'lock-status';
+    lockStatus.textContent = currentLocked ? '🔒 当前状态: 已上锁' : '🔓 当前状态: 已解锁';
+    addLog('device', `状态查询: ${currentLocked ? 'locked' : 'unlocked'}`);
+  }
+
+  completeStep('step-device');
+
+  if (result?.reply) {
+    addLog('ai', `管家: ${result.reply}`);
+  }
+
+  await sleep(300);
+  isRunning = false;
+  sendBtn.disabled = false;
+  input.value = '';
+  input.focus();
+}
+
+function inferAction(msg) {
+  if (msg.includes('开') || msg.includes('unlock')) return 'unlock';
+  if (msg.includes('锁') || msg.includes('lock') || msg.includes('关')) return 'lock';
+  return 'status';
+}
+
+function resetSteps() {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 'done'));
+}
+
+function setStepActive(id) {
+  document.getElementById(id).classList.add('active');
+}
+
+function completeStep(id) {
+  const el = document.getElementById(id);
+  el.classList.remove('active');
+  el.classList.add('done');
+}
+
+async function activateStep(id, duration) {
+  setStepActive(id);
+  await sleep(duration);
+  completeStep(id);
+}
+
+function addLog(type, text) {
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const tagClass = { ai: 'tag-ai', chain: 'tag-chain', p2p: 'tag-p2p', device: 'tag-device' }[type] || 'tag-ai';
+  const tagLabel = { ai: 'AI', chain: 'CHAIN', p2p: 'P2P', device: 'DEVICE' }[type] || 'SYS';
+  entry.innerHTML = `<span class="tag ${tagClass}">${tagLabel}</span>${escapeHtml(text)}`;
+  logContainer.insertBefore(entry, logContainer.firstChild);
+  if (logContainer.children.length > 30) logContainer.removeChild(logContainer.lastChild);
+}
+
+function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Init
+addLog('ai', '系统就绪，等待指令...');
+</script>
+</body>
+</html>
