@@ -85,6 +85,7 @@ export function DemoConsole({ wallet, onWalletChange, devices, selectedDevice, o
       const agent = await askAgent({
         message: `Unlock ${selectedDevice.name}`,
         devices,
+        account: nextWallet.address,
       });
       onEvent({
         title: t("demo.agentReplied"),

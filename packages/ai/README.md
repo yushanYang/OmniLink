@@ -1,34 +1,151 @@
-# @omnilink/ai — AI 管家层（项目皇冠）
+# @omnilink/ai
 
-自然语言 → LLM Function Calling → 跨设备标准化指令。这是 OmniLink 区别于单一生态语音助手的核心：因为底层接入已去中心化，AI 第一次拥有"跨厂商、统一授权"的设备控制身体。
+OmniLink AI butler layer: natural language -> Function Calling/local planning -> authorization check -> device command routing.
 
-## 模块
+This package is now usable before the chain/P2P modules are fully ready:
 
-| 文件 | 说明 |
-|------|------|
-| `src/tools.js` | Function Calling 工具 schema + 管家 system prompt |
-| `src/router.js` | 把工具调用路由到具体设备（可注入 executor，便于单测/联调） |
-| `src/index.js` | `createButler()`：封装 LLM 多轮工具调用循环 |
-| `src/cli.js` | 命令行 demo（带 mock 设备，无需真实 P2P 即可演示 AI 层） |
+- `DeviceRouter` is adapter-driven.
+- `createMockRuntime()` provides mock devices, mock access control, and mock execution.
+- `createButler()` uses OpenAI Function Calling when `OPENAI_API_KEY` is configured.
+- The OpenAI call uses Node's built-in `fetch`, so the API path does not depend on installing the `openai` package.
+- Without an OpenAI key, it falls back to a deterministic local planner so demos still run.
+- `src/server.js` exposes the web-facing AI API.
 
-## 运行
+## Run CLI Demo
 
 ```bash
-# 在 .env 配置 OPENAI_API_KEY 后
-npm run ai
+npm run start -w @omnilink/ai
 ```
 
-示例对话：
+Try:
+
+```txt
+lock the lab door
+unlock the lab door
+what devices do I have
+turn on the booth light
+grant visitor access to the booth light
 ```
-你 > 把门锁上
-  → [mock] omnilink-lock-001: lock
-管家 > 已为你把 omnilink-lock-001 上锁。
+
+## Run AI API For Web
+
+```bash
+npm run ai:serve
 ```
 
-## 范围（MVP）
+Real LLM mode:
 
-- ✅ 第 1 层：自然语言单/多设备控制
-- 🔜 第 2 层：跨设备场景编排（第 2-3 周）
-- 🔜 第 3 层：主动式 Agent（演示高潮）
+```bash
+OPENAI_API_KEY=sk-...
+AI_MODE=auto
+npm run ai:serve
+```
 
-联调时把 `router` 的 `executor` 从 mock 换成基于 `@omnilink/device` peer-channel 的真实 P2P 下发，并在 `control_device` 前接入链上 `checkAccess` 校验。
+Strict real LLM mode, useful for checking whether the API is actually connected:
+
+```bash
+OPENAI_API_KEY=sk-...
+AI_MODE=openai
+npm run ai:serve
+```
+
+`AI_MODE=auto` tries OpenAI first when a key exists and falls back to `local-planner` if the API is unavailable. `AI_MODE=openai` does not fallback.
+
+Then set the web env var:
+
+```bash
+VITE_OMNILINK_AI_API=http://localhost:8787
+npm run web
+```
+
+Health:
+
+```http
+GET http://localhost:8787/health
+```
+
+Chat:
+
+```http
+POST http://localhost:8787/chat
+Content-Type: application/json
+```
+
+```json
+{
+  "message": "Unlock Lab Door Lock",
+  "account": "demo-owner",
+  "devices": [
+    {
+      "id": "lock-lab-001",
+      "name": "Lab Door Lock",
+      "type": "Smart Lock",
+      "access": "granted",
+      "status": "online"
+    }
+  ]
+}
+```
+
+Response shape:
+
+```json
+{
+  "ok": true,
+  "reply": "Done: unlock was sent to lock-lab-001.",
+  "toolCall": {
+    "name": "sendDeviceCommand",
+    "arguments": {
+      "deviceId": "lock-lab-001",
+      "action": "unlock"
+    }
+  },
+  "toolResults": [
+    {
+      "name": "control_device",
+      "args": {
+        "deviceId": "lock-lab-001",
+        "action": "unlock"
+      },
+      "result": {
+        "ok": true
+      }
+    }
+  ],
+  "source": "local-planner",
+  "model": "local-planner"
+}
+```
+
+## Adapter Contract
+
+```js
+new DeviceRouter({
+  listDevices: async (context) => devices,
+  checkAccess: async (deviceId, userAddress, context) => true,
+  executor: async (deviceId, { action, value }, context) => result,
+  grantAccess: async (args, context) => result,
+});
+```
+
+Current mock adapters can be replaced later:
+
+- `checkAccess` -> `DeviceRegistry.checkAccess(deviceId, userAddress)`
+- `executor` -> `createP2PExecutor({ signalingUrl })`
+- `listDevices` -> chain registry discovery or web-provided device context
+
+## Real P2P Hook
+
+The real P2P executor lives in `src/p2p-executor.js` and speaks the current device protocol:
+
+```js
+{ "type": "command", "requestId": "...", "command": { "action": "unlock" } }
+```
+
+It waits for:
+
+```js
+{ "type": "result", "requestId": "...", "ok": true }
+```
+
+Use it after `packages/device` signaling and virtual lock are running.

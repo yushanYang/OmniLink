@@ -99,7 +99,7 @@ function App() {
         <WalletPanel wallet={wallet} onWalletChange={setWallet} t={t} />
         <DeviceList devices={devices} selectedDeviceId={selectedDeviceId} onSelect={setSelectedDeviceId} t={t} />
         <ControlPanel wallet={wallet} device={selectedDevice} onEvent={appendEvent} t={t} />
-        <AgentPanel devices={devices} onEvent={appendEvent} t={t} />
+        <AgentPanel wallet={wallet} devices={devices} onEvent={appendEvent} t={t} />
       </div>
 
       <section className="panel event-panel">
