@@ -8,6 +8,10 @@
   "scripts": {
     "signaling": "node src/signaling-server.js",
     "device": "node src/lock.js",
+    "light": "DEVICE_ID=lamp-demo-002 DEVICE_TYPE=light node src/virtual-device.js",
+    "ac": "DEVICE_ID=ac-room-003 DEVICE_TYPE=ac node src/virtual-device.js",
+    "speaker": "DEVICE_ID=speaker-room-004 DEVICE_TYPE=speaker node src/virtual-device.js",
+    "virtual": "node src/virtual-device.js",
     "client": "node src/client-example.js",
     "smoke": "node src/p2p-smoke.js",
     "test": "node --test",

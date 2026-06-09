@@ -75,6 +75,7 @@ body { background: var(--color-bg); color: var(--color-text); font-family: var(-
 .input-box { width: 100%; padding: 16px 60px 16px 20px; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text); font-size: 15px; outline: none; transition: border-color 0.3s, box-shadow 0.3s; }
 .input-box:focus { border-color: var(--color-primary); box-shadow: 0 0 20px var(--color-primary-glow); }
 .input-box::placeholder { color: var(--color-text-muted); }
+.input-box:disabled { opacity: 0.5; cursor: not-allowed; }
 .send-btn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 8px; border: none; background: var(--color-primary); color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s, transform 0.1s; }
 .send-btn:hover { background: #6ba0ff; }
 .send-btn:active { transform: translateY(-50%) scale(0.95); }
@@ -91,6 +92,8 @@ body { background: var(--color-bg); color: var(--color-text); font-family: var(-
 .tag-chain { background: rgba(167, 139, 250, 0.2); color: var(--color-chain); }
 .tag-p2p { background: rgba(52, 211, 153, 0.2); color: var(--color-success); }
 .tag-device { background: rgba(251, 191, 36, 0.2); color: var(--color-warning); }
+.log-entry a.tx-link { color: var(--color-chain); text-decoration: none; border-bottom: 1px dashed var(--color-chain); transition: opacity 0.2s; font-size: 10px; }
+.log-entry a.tx-link:hover { opacity: 0.7; }
 
 .device-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px; background: var(--color-surface-2); margin-top: 8px; }
 .device-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); }
@@ -103,6 +106,117 @@ body { background: var(--color-bg); color: var(--color-text); font-family: var(-
 .quick-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .quick-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-secondary); font-size: 12px; cursor: pointer; transition: all 0.2s; }
 .quick-btn:hover { border-color: var(--color-primary); color: var(--color-primary); background: rgba(79, 140, 255, 0.05); }
+.quick-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+/* My Devices Panel */
+.my-devices { width: 100%; max-width: 600px; margin-bottom: 24px; }
+.my-devices-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.my-devices-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--color-text-muted); }
+.batch-btns { display: flex; gap: 6px; }
+.batch-btn { padding: 4px 10px; border-radius: 5px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); font-size: 10px; cursor: pointer; transition: all 0.2s; }
+.batch-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.batch-btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+.device-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.device-chip { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 8px; background: var(--color-surface); border: 2px solid var(--color-border); cursor: pointer; transition: all 0.2s; min-width: 160px; }
+.device-chip:hover { border-color: var(--color-text-muted); }
+.device-chip.selected { border-color: var(--color-primary); background: rgba(79, 140, 255, 0.05); box-shadow: 0 0 12px var(--color-primary-glow); }
+.device-chip .chip-icon { font-size: 16px; }
+.device-chip .chip-info { flex: 1; }
+.device-chip .chip-name { font-size: 12px; font-weight: 500; }
+.device-chip .chip-id { font-size: 9px; color: var(--color-text-muted); font-family: var(--font-mono); }
+.device-chip .chip-status { width: 6px; height: 6px; border-radius: 50%; background: var(--color-success); }
+.device-chip .chip-status.locked { background: var(--color-warning); }
+.device-chip .chip-check { width: 16px; height: 16px; border-radius: 4px; border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: transparent; }
+.device-chip.selected .chip-check { border-color: var(--color-primary); color: var(--color-primary); background: rgba(79, 140, 255, 0.1); }
+.no-devices { color: var(--color-text-muted); font-size: 12px; padding: 12px; text-align: center; border: 1px dashed var(--color-border); border-radius: 8px; }
+
+/* Bind dialog: device picker */
+.discover-list { margin: 16px 0; max-height: 200px; overflow-y: auto; }
+.discover-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--color-border); margin-bottom: 6px; cursor: pointer; transition: all 0.2s; }
+.discover-item:hover { border-color: var(--color-text-muted); background: var(--color-surface-2); }
+.discover-item.picked { border-color: var(--color-primary); background: rgba(79, 140, 255, 0.08); }
+.discover-item .di-icon { font-size: 18px; }
+.discover-item .di-info { flex: 1; }
+.discover-item .di-name { font-size: 13px; font-weight: 500; }
+.discover-item .di-id { font-size: 10px; color: var(--color-text-muted); font-family: var(--font-mono); }
+.discover-item .di-pick { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--color-border); }
+.discover-item.picked .di-pick { border-color: var(--color-primary); background: var(--color-primary); box-shadow: inset 0 0 0 3px var(--color-surface); }
+
+/* Wallet Bar */
+.wallet-bar { width: 100%; max-width: 600px; margin-bottom: 32px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; background: var(--color-surface); border: 1px solid var(--color-border); }
+.wallet-bar .wallet-icon { font-size: 20px; }
+.wallet-bar .wallet-info { flex: 1; }
+.wallet-bar .wallet-addr { font-family: var(--font-mono); font-size: 12px; color: var(--color-text-secondary); }
+.wallet-bar .wallet-label { font-size: 11px; color: var(--color-text-muted); }
+.wallet-btn { padding: 8px 16px; border-radius: 8px; border: 1px solid var(--color-primary); background: transparent; color: var(--color-primary); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.wallet-btn:hover { background: rgba(79, 140, 255, 0.1); }
+.wallet-btn.connected { border-color: var(--color-success); color: var(--color-success); }
+.wallet-btn.claim { border-color: var(--color-chain); color: var(--color-chain); background: rgba(167, 139, 250, 0.05); }
+.wallet-btn.claim:hover { background: rgba(167, 139, 250, 0.15); }
+.wallet-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Onboarding Overlay */
+.onboard-overlay { position: fixed; inset: 0; background: rgba(10, 14, 26, 0.95); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.onboard-overlay.hidden { display: none; }
+.onboard-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 16px; padding: 40px; max-width: 440px; text-align: center; }
+.onboard-card h2 { font-size: 22px; margin-bottom: 8px; }
+.onboard-card p { color: var(--color-text-secondary); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+.onboard-card .ob-steps { text-align: left; margin-bottom: 24px; }
+.onboard-card .ob-step { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 13px; }
+.onboard-card .ob-step:last-child { border-bottom: none; }
+.onboard-card .ob-num { width: 28px; height: 28px; border-radius: 50%; background: var(--color-surface-2); border: 1px solid var(--color-border); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: var(--color-primary); flex-shrink: 0; }
+.onboard-card .ob-step.done .ob-num { background: rgba(52, 211, 153, 0.15); border-color: var(--color-success); color: var(--color-success); }
+.onboard-card .ob-step.active .ob-num { background: rgba(79, 140, 255, 0.15); border-color: var(--color-primary); box-shadow: 0 0 10px var(--color-primary-glow); }
+.ob-btn { padding: 12px 32px; border-radius: 10px; border: none; background: var(--color-primary); color: white; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.ob-btn:hover { background: #6ba0ff; }
+.ob-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.ob-btn.success { background: var(--color-success); }
+
+/* === Role Switcher Card === */
+.role-switcher { display: flex; gap: 6px; margin-top: 8px; }
+.role-btn { flex: 1; padding: 8px 0; border-radius: 6px; border: 1px solid var(--color-border); background: transparent; color: var(--color-text-muted); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.2s; text-align: center; }
+.role-btn.active { border-color: var(--color-primary); color: var(--color-primary); background: rgba(79, 140, 255, 0.1); }
+.role-btn:hover:not(.active) { border-color: var(--color-text-muted); color: var(--color-text-secondary); }
+.guest-countdown { margin-top: 10px; padding: 10px; border-radius: 8px; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); font-size: 12px; text-align: center; display: none; }
+.guest-countdown .countdown-time { font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--color-warning); margin: 6px 0 2px; }
+.guest-countdown .countdown-label { color: var(--color-text-muted); font-size: 10px; }
+.guest-countdown.expired { border-color: rgba(248, 113, 113, 0.4); background: rgba(248, 113, 113, 0.08); }
+.guest-countdown.expired .countdown-time { color: var(--color-error); }
+.expired-banner { display: none; padding: 8px 12px; border-radius: 6px; background: rgba(248, 113, 113, 0.1); border: 1px solid rgba(248, 113, 113, 0.3); color: var(--color-error); font-size: 12px; text-align: center; margin-top: 8px; }
+
+/* === Connection Status Icons === */
+.conn-status { display: flex; align-items: center; gap: 6px; }
+.conn-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.conn-dot.connected { background: var(--color-success); box-shadow: 0 0 6px var(--color-success-glow); }
+.conn-dot.disconnected { background: var(--color-error); }
+.conn-dot.connecting { background: var(--color-warning); animation: connPulse 1s ease-in-out infinite; }
+@keyframes connPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+@keyframes connSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.conn-spinner { width: 10px; height: 10px; border: 2px solid var(--color-warning); border-top-color: transparent; border-radius: 50%; animation: connSpin 0.8s linear infinite; flex-shrink: 0; }
+.conn-warn-banner { display: none; padding: 8px 12px; border-radius: 6px; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.3); color: var(--color-warning); font-size: 11px; margin-top: 8px; line-height: 1.4; }
+
+/* === AI Chat Bubbles === */
+.chat-container { width: 100%; max-width: 500px; margin-bottom: 16px; max-height: 240px; overflow-y: auto; display: none; flex-direction: column; gap: 8px; padding: 12px; border-radius: 12px; border: 1px solid var(--color-border); background: var(--color-surface); }
+.chat-container.has-messages { display: flex; }
+.chat-bubble { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 13px; line-height: 1.5; word-break: break-word; }
+.chat-bubble.user { align-self: flex-end; background: var(--color-primary); color: white; border-bottom-right-radius: 4px; }
+.chat-bubble.ai { align-self: flex-start; background: var(--color-surface-2); color: var(--color-text); border: 1px solid var(--color-border); border-bottom-left-radius: 4px; }
+.chat-bubble.ai .ai-label { font-size: 10px; color: var(--color-primary); font-weight: 600; margin-bottom: 4px; }
+.chat-bubble.thinking { align-self: flex-start; background: var(--color-surface-2); border: 1px solid var(--color-border); border-bottom-left-radius: 4px; color: var(--color-text-muted); font-style: italic; padding: 10px 14px; }
+@keyframes thinkDot { 0%, 20% { opacity: 0.2; } 50% { opacity: 1; } 80%, 100% { opacity: 0.2; } }
+.thinking-dots { display: inline-flex; align-items: center; gap: 3px; }
+.thinking-dots span { width: 5px; height: 5px; border-radius: 50%; background: var(--color-text-muted); animation: thinkDot 1.4s ease-in-out infinite; }
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Tool Call Collapsible */
+.tool-call-panel { margin-top: 8px; border-radius: 6px; border: 1px solid var(--color-border); overflow: hidden; font-size: 11px; }
+.tool-call-header { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: rgba(167, 139, 250, 0.08); color: var(--color-chain); cursor: pointer; font-family: var(--font-mono); user-select: none; transition: background 0.2s; }
+.tool-call-header:hover { background: rgba(167, 139, 250, 0.15); }
+.tool-call-header::before { content: '\25B6'; font-size: 9px; transition: transform 0.2s; }
+.tool-call-header.open::before { transform: rotate(90deg); }
+.tool-call-body { display: none; padding: 8px 10px; background: var(--color-bg); font-family: var(--font-mono); color: var(--color-text-secondary); white-space: pre-wrap; line-height: 1.4; font-size: 10px; max-height: 120px; overflow-y: auto; }
+.tool-call-body.open { display: block; }
 
 /* Responsive */
 @media (max-width: 900px) {
@@ -124,7 +238,49 @@ body { background: var(--color-bg); color: var(--color-text); font-family: var(-
 </div>
 
 <div class="main">
+  <!-- Bind Device Overlay -->
+  <div class="onboard-overlay hidden" id="bindOverlay">
+    <div class="onboard-card">
+      <h2>➕ 绑定设备</h2>
+      <p>选择要绑定的设备，钱包地址将通过 P2P 发送给设备完成绑定。<br><small style="color:var(--color-text-muted);">真实场景通过 BLE 近场传输，确保物理接近。</small></p>
+      <div class="discover-list" id="discoverList"></div>
+      <div class="ob-steps" id="bindSteps" style="display:none;">
+        <div class="ob-step" id="bind-step-1"><span class="ob-num">1</span><span>P2P 发送钱包地址到设备</span></div>
+        <div class="ob-step" id="bind-step-2"><span class="ob-num">2</span><span>设备执行 bindOwner 上链</span></div>
+        <div class="ob-step" id="bind-step-3"><span class="ob-num">3</span><span>绑定完成 — 设备归属你的钱包</span></div>
+      </div>
+      <button class="ob-btn" id="bindBtn">🔗 一键绑定</button>
+      <button class="ob-btn" id="bindCancelBtn" style="background:transparent; color:var(--color-text-muted); border:1px solid var(--color-border); margin-top:8px;">取消</button>
+    </div>
+  </div>
+
   <div class="center">
+    <!-- Wallet Bar -->
+    <div class="wallet-bar" id="walletBar" style="display:none;">
+      <span class="wallet-icon">👛</span>
+      <div class="wallet-info">
+        <div class="wallet-addr" id="walletAddr">未连接</div>
+        <div class="wallet-label" id="walletLabel">点击连接 TronLink</div>
+      </div>
+      <button class="wallet-btn" id="walletBtn">🔗 连接钱包</button>
+      <button class="wallet-btn claim" id="addDeviceBtn" style="display:none;">➕ 添加设备</button>
+    </div>
+
+    <!-- My Devices Panel -->
+    <div class="my-devices" id="myDevicesPanel" style="display:none;">
+      <div class="my-devices-header">
+        <span class="my-devices-title">我的设备</span>
+        <div class="batch-btns">
+          <button class="batch-btn" id="selectAllBtn">全选</button>
+          <button class="batch-btn" id="batchUnlockBtn">🔓 批量开锁</button>
+          <button class="batch-btn" id="batchLockBtn">🔒 批量锁定</button>
+        </div>
+      </div>
+      <div class="device-grid" id="deviceGrid">
+        <div class="no-devices" id="noDevicesHint">暂无设备，点击上方"添加设备"绑定</div>
+      </div>
+    </div>
+
     <!-- Pipeline -->
     <div class="pipeline">
       <div class="step" id="step-nlp">
@@ -153,23 +309,26 @@ body { background: var(--color-bg); color: var(--color-text); font-family: var(-
       </div>
     </div>
 
-    <!-- Lock Visual -->
+    <!-- Device Visual -->
     <div class="lock-container">
       <div class="lock-ring locked" id="lockRing">
         <div class="pulse-ring"></div>
         <span class="lock-icon" id="lockIcon">🔒</span>
       </div>
-      <div class="lock-status" id="lockStatus">设备就绪 · omnilink-lock-001</div>
+      <div class="lock-status" id="lockStatus">选择设备开始操作</div>
     </div>
+
+    <!-- AI Chat Area -->
+    <div class="chat-container" id="chatContainer"></div>
 
     <!-- Input -->
     <div class="input-area">
-      <input class="input-box" id="cmdInput" placeholder="试试说：开门 / 锁门 / 查看状态..." autocomplete="off" />
+      <input class="input-box" id="cmdInput" placeholder="试试说：开门 / 开灯 / 调温到26度..." autocomplete="off" />
       <button class="send-btn" id="sendBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
     </div>
-    <div class="quick-actions">
+    <div class="quick-actions" id="quickActions">
       <button class="quick-btn" data-cmd="帮我开门">🔓 开门</button>
       <button class="quick-btn" data-cmd="把门锁上">🔒 锁门</button>
       <button class="quick-btn" data-cmd="门锁状态">📊 状态</button>
@@ -179,6 +338,45 @@ body { background: var(--color-bg); color: var(--color-text); font-family: var(-
 
   <!-- Sidebar -->
   <div class="sidebar">
+    <!-- Role Switcher -->
+    <div class="sidebar-section" id="roleSwitcherSection">
+      <div class="sidebar-title">角色切换</div>
+      <div class="role-switcher">
+        <button class="role-btn active" id="roleOwnerBtn" onclick="switchRole('owner')">👑 Owner</button>
+        <button class="role-btn" id="roleGuestBtn" onclick="switchRole('guest')">👤 Guest</button>
+      </div>
+      <div class="guest-countdown" id="guestCountdown">
+        <div class="countdown-label">授权剩余时间</div>
+        <div class="countdown-time" id="countdownTime">--:--:--</div>
+        <div class="countdown-label" id="countdownExpiry"></div>
+      </div>
+      <div class="expired-banner" id="expiredBanner">⚠️ 授权已过期，控制功能已禁用</div>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="sidebar-section" id="connStatusSection">
+      <div class="sidebar-title">连接状态</div>
+      <div style="font-size:11px; color:var(--color-text-secondary); line-height:2.2;">
+        <div class="conn-status">
+          <span class="conn-dot connected" id="connDotSignaling"></span>
+          <span>Signaling: <span id="connLabelSignaling" style="color:var(--color-success)">ws://localhost:8080</span></span>
+        </div>
+        <div class="conn-status">
+          <span class="conn-dot connected" id="connDotP2P"></span>
+          <span>P2P WebRTC: <span id="connLabelP2P" style="color:var(--color-success)">已连接</span></span>
+        </div>
+        <div class="conn-status">
+          <span class="conn-dot connected" id="connDotAI"></span>
+          <span>AI API: <span id="connLabelAI" style="color:var(--color-success)">localhost:8787</span></span>
+        </div>
+        <div class="conn-status">
+          <span class="conn-dot connected"></span>
+          <span>Chain: <span style="color:var(--color-chain)">TRON Nile</span></span>
+        </div>
+      </div>
+      <div class="conn-warn-banner" id="connWarnBanner">⚠️ Signaling 断线，但已建立的 P2P 连接不受影响（去中心化特性）</div>
+    </div>
+
     <div class="sidebar-section">
       <div class="sidebar-title">设备列表</div>
       <div class="device-card">
@@ -201,21 +399,361 @@ body { background: var(--color-bg); color: var(--color-text); font-family: var(-
       <div class="sidebar-title">实时日志</div>
       <div id="logContainer"></div>
     </div>
-
-    <div class="sidebar-section">
-      <div class="sidebar-title">连接信息</div>
-      <div style="font-size:11px; color:var(--color-text-secondary); line-height:1.8;">
-        <div>AI API: <span style="color:var(--color-success)">localhost:8787</span></div>
-        <div>Signaling: <span style="color:var(--color-success)">ws://localhost:8080</span></div>
-        <div>Transport: <span style="color:var(--color-primary)">WebRTC P2P</span></div>
-        <div>Chain: <span style="color:var(--color-chain)">TRON Nile</span></div>
-      </div>
-    </div>
   </div>
 </div>
 
 <script>
 const API_URL = 'http://localhost:8787';
+const CONTRACT_ADDR = 'TBZFyNyCBrKq5R6TXhF9rQCLgd2APQcvNx';
+const TRONSCAN_BASE = 'https://nile.tronscan.org/#/transaction/';
+
+// 设备类型配置
+const DEVICE_TYPES = {
+  'Smart Lock': {
+    icon: '\u{1F512}', iconActive: '\u{1F513}',
+    defaultState: { locked: true },
+    stateLabel: (s) => s.locked ? '\u{1F512} 已上锁' : '\u{1F513} 已解锁',
+    quickActions: [
+      { label: '\u{1F513} 开门', cmd: '帮我开门' },
+      { label: '\u{1F512} 锁门', cmd: '把门锁上' },
+      { label: '\u{1F4CA} 状态', cmd: '门锁状态' },
+      { label: '\u{1F464} 授权访客', cmd: '授权访客进入4小时' },
+    ],
+  },
+  'Light': {
+    icon: '\u{1F4A1}', iconActive: '\u{1F31F}',
+    defaultState: { brightness: 0 },
+    stateLabel: (s) => s.brightness > 0 ? `\u{1F4A1} 亮度 ${s.brightness}%` : '\u{1F311} 已关闭',
+    quickActions: [
+      { label: '\u{1F4A1} 开灯', cmd: '打开灯' },
+      { label: '\u{1F311} 关灯', cmd: '关灯' },
+      { label: '\u{1F506} 亮度80%', cmd: '把灯调到80%' },
+      { label: '\u{1F505} 亮度30%', cmd: '把灯调到30%' },
+    ],
+  },
+  'Air Conditioner': {
+    icon: '\u2744\uFE0F', iconActive: '\u{1F321}\uFE0F',
+    defaultState: { temperature: 24 },
+    stateLabel: (s) => `\u{1F321}\uFE0F ${s.temperature}\u00B0C`,
+    quickActions: [
+      { label: '\u2744\uFE0F 制冷26\u00B0', cmd: '空调调到26度' },
+      { label: '\u{1F525} 制热22\u00B0', cmd: '空调调到22度' },
+      { label: '\u{1F4CA} 状态', cmd: '空调状态' },
+      { label: '\u23FB 关闭', cmd: '关闭空调' },
+    ],
+  },
+  'Speaker': {
+    icon: '\u{1F50A}', iconActive: '\u{1F3B5}',
+    defaultState: { playing: false },
+    stateLabel: (s) => s.playing ? '\u{1F3B5} 播放中' : '\u{1F507} 静音',
+    quickActions: [
+      { label: '\u25B6\uFE0F 播放', cmd: '播放音乐' },
+      { label: '\u23F8\uFE0F 暂停', cmd: '暂停播放' },
+      { label: '\u{1F50A} 音量+', cmd: '音量调大' },
+      { label: '\u{1F508} 音量-', cmd: '音量调小' },
+    ],
+  },
+};
+
+// 可发现的设备
+const DISCOVERABLE_DEVICES = [
+  { deviceId: 'omnilink-lock-001', name: 'Lab Door Lock', type: 'Smart Lock', icon: '\u{1F512}', state: { locked: true } },
+  { deviceId: 'lamp-demo-002', name: 'Booth Light', type: 'Light', icon: '\u{1F4A1}', state: { brightness: 0 } },
+  { deviceId: 'ac-room-003', name: 'Meeting AC', type: 'Air Conditioner', icon: '\u2744\uFE0F', state: { temperature: 24 } },
+  { deviceId: 'speaker-room-004', name: 'Room Speaker', type: 'Speaker', icon: '\u{1F50A}', state: { playing: false } },
+];
+
+let selectedDeviceForControl = null;
+let pickedDevicesToBind = new Set();
+
+// === Wallet & Onboarding ===
+let walletAddress = null;
+let boundDevices = [];
+
+// === Role & Guest State ===
+let currentRole = 'owner';
+let guestExpiry = null;
+let guestCountdownInterval = null;
+let guestAccessExpired = false;
+
+// === Connection State ===
+let connectionState = { signaling: 'connected', p2p: 'connected', ai: 'connected' };
+
+const bindOverlay = document.getElementById('bindOverlay');
+const walletBar = document.getElementById('walletBar');
+const walletAddr = document.getElementById('walletAddr');
+const walletLabel = document.getElementById('walletLabel');
+const walletBtn = document.getElementById('walletBtn');
+const addDeviceBtn = document.getElementById('addDeviceBtn');
+const bindBtn = document.getElementById('bindBtn');
+const bindCancelBtn = document.getElementById('bindCancelBtn');
+const discoverList = document.getElementById('discoverList');
+const bindSteps = document.getElementById('bindSteps');
+const myDevicesPanel = document.getElementById('myDevicesPanel');
+const deviceGrid = document.getElementById('deviceGrid');
+const noDevicesHint = document.getElementById('noDevicesHint');
+const chatContainer = document.getElementById('chatContainer');
+
+walletBtn.addEventListener('click', connectWallet);
+addDeviceBtn.addEventListener('click', showBindDialog);
+bindBtn.addEventListener('click', doBindDevice);
+bindCancelBtn.addEventListener('click', () => bindOverlay.classList.add('hidden'));
+
+walletBar.style.display = 'flex';
+myDevicesPanel.style.display = 'block';
+
+// Batch buttons
+document.getElementById('selectAllBtn').addEventListener('click', selectAllDevices);
+document.getElementById('batchUnlockBtn').addEventListener('click', () => batchCommand('unlock'));
+document.getElementById('batchLockBtn').addEventListener('click', () => batchCommand('lock'));
+
+async function connectWallet() {
+  if (window.tronLink && window.tronLink.request) {
+    try {
+      await window.tronLink.request({ method: 'tron_requestAccounts' });
+      if (window.tronWeb && window.tronWeb.defaultAddress && window.tronWeb.defaultAddress.base58) walletAddress = window.tronWeb.defaultAddress.base58;
+    } catch(e) { }
+  }
+  if (!walletAddress) walletAddress = 'TNile' + Math.random().toString(36).slice(2, 10) + 'Demo';
+
+  walletAddr.textContent = walletAddress;
+  walletLabel.textContent = walletAddress.length > 30 ? 'TronLink \u00B7 Nile Testnet' : 'Mock Wallet \u00B7 Demo';
+  walletBtn.textContent = '\u2713 已连接';
+  walletBtn.classList.add('connected');
+  walletBtn.disabled = true;
+  addDeviceBtn.style.display = 'inline-flex';
+  addLog('chain', '\u94B1\u5305\u5DF2\u8FDE\u63A5: ' + walletAddress.slice(0,8) + '...' + walletAddress.slice(-4));
+}
+
+function showBindDialog() {
+  if (!walletAddress) { connectWallet(); return; }
+  pickedDevicesToBind.clear();
+  const available = DISCOVERABLE_DEVICES.filter(d => !boundDevices.find(b => b.deviceId === d.deviceId));
+  discoverList.innerHTML = available.length ? available.map(d => `
+    <div class="discover-item" data-id="${d.deviceId}" onclick="togglePickDevice('${d.deviceId}')">
+      <span class="di-icon">${d.icon}</span>
+      <div class="di-info">
+        <div class="di-name">${d.name}</div>
+        <div class="di-id">${d.deviceId}</div>
+      </div>
+      <div class="di-pick"></div>
+    </div>
+  `).join('') : '<div class="no-devices">\u6240\u6709\u53EF\u7528\u8BBE\u5907\u5DF2\u7ED1\u5B9A</div>';
+
+  bindSteps.style.display = 'none';
+  document.querySelectorAll('#bindSteps .ob-step').forEach(s => s.classList.remove('active','done'));
+  bindBtn.textContent = '\u{1F517} 一键绑定';
+  bindBtn.disabled = false;
+  bindBtn.className = 'ob-btn';
+  bindOverlay.classList.remove('hidden');
+}
+
+function togglePickDevice(deviceId) {
+  if (pickedDevicesToBind.has(deviceId)) {
+    pickedDevicesToBind.delete(deviceId);
+  } else {
+    pickedDevicesToBind.add(deviceId);
+  }
+  document.querySelectorAll('.discover-item').forEach(el => {
+    el.classList.toggle('picked', pickedDevicesToBind.has(el.dataset.id));
+  });
+}
+
+async function doBindDevice() {
+  if (pickedDevicesToBind.size === 0) { bindBtn.textContent = '\u26A0\uFE0F 请先选择设备'; return; }
+
+  bindBtn.disabled = true;
+  bindBtn.textContent = '绑定中...';
+  bindSteps.style.display = 'block';
+
+  // Step 1
+  document.getElementById('bind-step-1').classList.add('active');
+  const deviceNames = [...pickedDevicesToBind].join(', ');
+  addLog('p2p', 'P2P \u2192 [' + deviceNames + ']: 发送钱包地址 ' + walletAddress.slice(0,8) + '...');
+
+  let deviceOnline = false;
+  for (const did of pickedDevicesToBind) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const checkResp = await fetch(API_URL + '/commands', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ deviceId: did, action: 'status' }), signal: controller.signal });
+      clearTimeout(timeoutId);
+      const checkResult = await checkResp.json();
+      if (checkResult.ok) { deviceOnline = true; addLog('p2p', '\u2713 ' + did + ' 在线，已收到钱包地址'); }
+      else { addLog('p2p', '\u26A0 ' + did + ' 无响应，仍尝试绑定'); }
+    } catch(e) {
+      addLog('p2p', '\u26A0 ' + did + ' 未检测到（离线），跳过检测');
+    }
+  }
+
+  if (!deviceOnline) {
+    addLog('p2p', '\u26A0 未检测到在线设备，使用 mock 模式绑定（演示）');
+  }
+
+  document.getElementById('bind-step-1').classList.remove('active');
+  document.getElementById('bind-step-1').classList.add('done');
+
+  // Step 2
+  document.getElementById('bind-step-2').classList.add('active');
+  addLog('chain', 'bindOwner([' + deviceNames + ']) \u2192 owner: ' + walletAddress.slice(0,8) + '...');
+  await sleep(1200);
+  const mockTxId = generateMockTxId();
+  for (const did of pickedDevicesToBind) {
+    try {
+      await fetch(API_URL + '/access/grant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: walletAddress, deviceId: did, durationHours: 0 })
+      });
+    } catch(e) {}
+  }
+  document.getElementById('bind-step-2').classList.remove('active');
+  document.getElementById('bind-step-2').classList.add('done');
+  addLogWithTx('chain', '\u2713 bindOwner 交易确认', mockTxId);
+
+  // Step 3
+  document.getElementById('bind-step-3').classList.add('active');
+  await sleep(500);
+  document.getElementById('bind-step-3').classList.remove('active');
+  document.getElementById('bind-step-3').classList.add('done');
+
+  for (const did of pickedDevicesToBind) {
+    const dev = DISCOVERABLE_DEVICES.find(d => d.deviceId === did);
+    if (dev && !boundDevices.find(b => b.deviceId === did)) {
+      boundDevices.push({ ...dev, locked: true });
+    }
+  }
+
+  bindBtn.textContent = '\u2705 绑定成功';
+  bindBtn.className = 'ob-btn success';
+  addLog('device', '\u2713 ' + pickedDevicesToBind.size + ' 台设备已绑定（共 ' + boundDevices.length + ' 台）');
+
+  await sleep(1000);
+  bindOverlay.classList.add('hidden');
+  addDeviceBtn.textContent = '\u2795 添加设备 (' + boundDevices.length + ')';
+  renderDeviceGrid();
+}
+
+// === Device Grid ===
+function renderDeviceGrid() {
+  if (boundDevices.length === 0) {
+    noDevicesHint.style.display = 'block';
+    deviceGrid.innerHTML = '';
+    deviceGrid.appendChild(noDevicesHint);
+    return;
+  }
+  noDevicesHint.style.display = 'none';
+  deviceGrid.innerHTML = boundDevices.map(d => {
+    const tc = DEVICE_TYPES[d.type] || DEVICE_TYPES['Smart Lock'];
+    const isActive = d.type === 'Smart Lock' ? !d.state.locked
+      : d.type === 'Light' ? (d.state.brightness || 0) > 0
+      : d.type === 'Air Conditioner' ? true : false;
+    const stateText = tc.stateLabel(d.state || tc.defaultState);
+    return '<div class="device-chip ' + (selectedDevices.has(d.deviceId) ? 'selected' : '') + '" data-id="' + d.deviceId + '" onclick="toggleSelectDevice(\'' + d.deviceId + '\')">' +
+      '<span class="chip-check">' + (selectedDevices.has(d.deviceId) ? '\u2713' : '') + '</span>' +
+      '<span class="chip-icon">' + (isActive ? tc.iconActive : tc.icon) + '</span>' +
+      '<div class="chip-info"><div class="chip-name">' + d.name + '</div><div class="chip-id">' + stateText + '</div></div>' +
+      '<div class="chip-status ' + (isActive ? '' : 'locked') + '"></div></div>';
+  }).join('');
+}
+
+let selectedDevices = new Set();
+
+function toggleSelectDevice(deviceId) {
+  if (selectedDevices.has(deviceId)) {
+    selectedDevices.delete(deviceId);
+  } else {
+    selectedDevices.add(deviceId);
+  }
+  if (selectedDevices.size === 1) {
+    selectedDeviceForControl = [...selectedDevices][0];
+    updateDeviceUI(selectedDeviceForControl);
+  } else if (selectedDevices.size === 0) {
+    selectedDeviceForControl = null;
+    updateDeviceUI(null);
+  } else {
+    updateDeviceUI('multi');
+  }
+  renderDeviceGrid();
+}
+
+function updateDeviceUI(deviceIdOrMode) {
+  const quickActions = document.getElementById('quickActions');
+  const isExpired = guestAccessExpired;
+
+  if (!deviceIdOrMode) {
+    lockIcon.textContent = '\u{1F4F1}';
+    lockStatus.textContent = '选择设备开始操作';
+    lockRing.className = 'lock-ring locked';
+    quickActions.innerHTML = '<span style="color:var(--color-text-muted);font-size:12px;">请先选择要操作的设备</span>';
+    return;
+  }
+
+  if (deviceIdOrMode === 'multi') {
+    lockIcon.textContent = '\u{1F4F1}';
+    lockStatus.textContent = '已选 ' + selectedDevices.size + ' 台设备 \u00B7 使用批量操作';
+    lockRing.className = 'lock-ring locked';
+    quickActions.innerHTML = '<span style="color:var(--color-text-muted);font-size:12px;">多选模式：使用上方批量按钮或输入自然语言指令</span>';
+    return;
+  }
+
+  const dev = boundDevices.find(d => d.deviceId === deviceIdOrMode);
+  if (!dev) return;
+
+  const typeConfig = DEVICE_TYPES[dev.type] || DEVICE_TYPES['Smart Lock'];
+  lockIcon.textContent = typeConfig.icon;
+  lockIcon.className = 'lock-icon';
+  lockRing.className = 'lock-ring locked';
+  lockStatus.textContent = typeConfig.stateLabel(dev.state || typeConfig.defaultState) + ' \u00B7 ' + dev.name;
+
+  quickActions.innerHTML = typeConfig.quickActions.map(a =>
+    '<button class="quick-btn" data-cmd="' + a.cmd + '"' + (isExpired ? ' disabled' : '') + '>' + a.label + '</button>'
+  ).join('');
+
+  quickActions.querySelectorAll('.quick-btn').forEach(btn => {
+    btn.addEventListener('click', () => { if (!isRunning && !guestAccessExpired) { input.value = btn.dataset.cmd; runCommand(btn.dataset.cmd); } });
+  });
+}
+
+function selectAllDevices() {
+  if (selectedDevices.size === boundDevices.length) {
+    selectedDevices.clear();
+  } else {
+    boundDevices.forEach(d => selectedDevices.add(d.deviceId));
+  }
+  renderDeviceGrid();
+}
+
+async function batchCommand(action) {
+  if (guestAccessExpired) { addLog('ai', '\u26A0\uFE0F 授权已过期，无法操作'); return; }
+  const targets = selectedDevices.size > 0 ? [...selectedDevices] : boundDevices.map(d => d.deviceId);
+  if (targets.length === 0) return;
+
+  addLog('ai', '批量操作: ' + action + ' \u2192 ' + targets.length + ' 台设备');
+  for (const deviceId of targets) {
+    try {
+      await fetch(API_URL + '/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: action === 'unlock' ? '解锁' : '锁门', devices: [{ deviceId: deviceId, name: deviceId, type: 'Smart Lock', access: 'granted' }] })
+      });
+      const dev = boundDevices.find(d => d.deviceId === deviceId);
+      if (dev) dev.locked = action === 'lock';
+      addLog('device', '\u2713 ' + deviceId + ': ' + action);
+    } catch(e) {
+      addLog('device', '\u26A0 ' + deviceId + ': ' + action + ' failed');
+    }
+  }
+  renderDeviceGrid();
+  const allLocked = boundDevices.every(d => d.locked);
+  lockRing.className = allLocked ? 'lock-ring locked' : 'lock-ring unlocked';
+  lockIcon.textContent = allLocked ? '\u{1F512}' : '\u{1F513}';
+  lockIcon.className = allLocked ? 'lock-icon' : 'lock-icon unlocked';
+  lockStatus.textContent = (action === 'unlock' ? '\u{1F513}' : '\u{1F512}') + ' 批量' + (action === 'unlock' ? '解锁' : '上锁') + '完成（' + targets.length + ' 台）';
+  lockStatus.className = action === 'unlock' ? 'lock-status unlocked' : 'lock-status';
+}
+
+// === Main Logic ===
 const input = document.getElementById('cmdInput');
 const sendBtn = document.getElementById('sendBtn');
 const lockRing = document.getElementById('lockRing');
@@ -229,100 +767,176 @@ let currentLocked = true;
 // Quick action buttons
 document.querySelectorAll('.quick-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    if (!isRunning) {
+    if (!isRunning && !guestAccessExpired) {
       input.value = btn.dataset.cmd;
       runCommand(btn.dataset.cmd);
     }
   });
 });
 
-sendBtn.addEventListener('click', () => { if (!isRunning && input.value.trim()) runCommand(input.value.trim()); });
-input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !isRunning && input.value.trim()) runCommand(input.value.trim()); });
+sendBtn.addEventListener('click', () => { if (!isRunning && !guestAccessExpired && input.value.trim()) runCommand(input.value.trim()); });
+input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !isRunning && !guestAccessExpired && input.value.trim()) runCommand(input.value.trim()); });
 
 async function runCommand(message) {
+  if (guestAccessExpired) {
+    addChatBubble('ai', '\u26A0\uFE0F 授权已过期，无法执行操作。请联系设备所有者重新授权。');
+    return;
+  }
+
   isRunning = true;
   sendBtn.disabled = true;
   resetSteps();
 
+  // Add user chat bubble
+  addChatBubble('user', message);
+
+  // Show thinking animation
+  const thinkingEl = addThinkingBubble();
+
   // Step 1: NLP
   await activateStep('step-nlp', 600);
-  addLog('ai', `用户: "${message}"`);
+  addLog('ai', '用户: "' + message + '"');
 
   // Step 2: AI Parse
   await activateStep('step-ai', 800);
-  addLog('ai', '意图解析 → control_device');
+  addLog('ai', '意图解析 \u2192 control_device');
 
   // Step 3: Chain check
   setStepActive('step-chain');
   lockRing.className = 'lock-ring checking';
   lockStatus.className = 'lock-status checking';
-  lockStatus.textContent = '⛓️ 链上授权校验中...';
-  addLog('chain', 'checkAccess(omnilink-lock-001, owner)');
+  lockStatus.textContent = '\u26D3\uFE0F 链上授权校验中...';
+  const checkTxId = generateMockTxId();
+  addLog('chain', 'checkAccess(omnilink-lock-001, ' + currentRole + ')');
   await sleep(700);
-  addLog('chain', '✓ 授权有效 (expiry: permanent)');
+  addLogWithTx('chain', '\u2713 授权有效 (expiry: ' + (currentRole === 'guest' ? formatExpiry(guestExpiry) : 'permanent') + ')', checkTxId);
 
   // Step 4: P2P
   completeStep('step-chain');
   setStepActive('step-p2p');
-  lockStatus.textContent = '📡 P2P WebRTC 连接中...';
-  addLog('p2p', 'WebRTC DataChannel → room: omnilink-lock-001');
+  lockStatus.textContent = '\u{1F4E1} P2P WebRTC 连接中...';
+  addLog('p2p', 'WebRTC DataChannel \u2192 room: omnilink-lock-001');
   await sleep(500);
 
-  // Actually call the API
+  // Call the API
   let result;
   try {
-    const resp = await fetch(`${API_URL}/chat`, {
+    const targetDevices = boundDevices.length > 0
+      ? boundDevices.map(d => ({ deviceId: d.deviceId, name: d.name, type: d.type || 'Smart Lock', access: 'granted' }))
+      : [{ deviceId: 'omnilink-lock-001', name: 'Lab Door Lock', type: 'Smart Lock', access: 'granted' }];
+
+    const controller = new AbortController();
+    const fetchTimeout = setTimeout(() => controller.abort(), 15000);
+
+    const resp = await fetch(API_URL + '/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        message,
-        devices: [{ deviceId: 'omnilink-lock-001', name: 'Lab Door Lock', type: 'Smart Lock', access: 'granted' }]
-      })
+        message: message,
+        devices: targetDevices,
+        account: currentRole === 'guest' ? 'demo-guest' : 'demo-owner'
+      }),
+      signal: controller.signal
     });
+    clearTimeout(fetchTimeout);
     result = await resp.json();
-    const transport = result?.toolResults?.[0]?.result?.transport || 'mock';
-    addLog('p2p', `✓ 指令已送达 (transport: ${transport})`);
-    document.getElementById('modeBadge').textContent = transport === 'p2p' ? '● P2P Live' : '● Mock Mode';
+    const transport = (result.toolResults && result.toolResults[0] && result.toolResults[0].result && result.toolResults[0].result.transport) || 'mock';
+    addLog('p2p', '\u2713 指令已送达 (transport: ' + transport + ')');
+    document.getElementById('modeBadge').textContent = transport === 'p2p' ? '\u25CF P2P Live' : '\u25CF Mock Mode';
+    updateConnectionState('p2p', 'connected');
+    updateConnectionState('ai', 'connected');
   } catch(e) {
-    addLog('p2p', `⚠ API 离线，模拟执行`);
-    document.getElementById('modeBadge').textContent = '● Offline Demo';
-    result = { ok: true, reply: 'Done (simulated).', toolResults: [{ result: { ok: true, action: inferAction(message), state: { locked: inferAction(message) === 'lock' } } }] };
+    addLog('p2p', '\u26A0 API 离线，模拟执行');
+    document.getElementById('modeBadge').textContent = '\u25CF Offline Demo';
+    updateConnectionState('ai', 'disconnected');
+    result = { ok: true, reply: 'Done (simulated).', toolResults: [{ name: 'control_device', args: { action: inferAction(message) }, result: { ok: true, action: inferAction(message), state: { locked: inferAction(message) === 'lock' } } }] };
   }
+
+  // Remove thinking bubble
+  if (thinkingEl && thinkingEl.parentNode) thinkingEl.remove();
 
   // Step 5: Device execute
   completeStep('step-p2p');
   setStepActive('step-device');
   await sleep(400);
 
-  const action = result?.toolResults?.[0]?.result?.action || inferAction(message);
+  const toolResult = (result.toolResults && result.toolResults[0] && result.toolResults[0].result) || {};
+  const action = toolResult.action || inferAction(message);
+  const reportedState = toolResult.state || {};
+  const targetDeviceId = toolResult.deviceId || (boundDevices[0] && boundDevices[0].deviceId) || 'omnilink-lock-001';
 
-  if (action === 'unlock') {
-    currentLocked = false;
-    lockRing.className = 'lock-ring unlocked';
-    lockIcon.className = 'lock-icon unlocked';
-    lockIcon.textContent = '🔓';
-    lockStatus.className = 'lock-status unlocked';
-    lockStatus.textContent = '✅ 门锁已解锁';
-    addLog('device', '🔓 门锁已解锁');
-  } else if (action === 'lock') {
-    currentLocked = true;
-    lockRing.className = 'lock-ring locked';
-    lockIcon.className = 'lock-icon';
-    lockIcon.textContent = '🔒';
-    lockStatus.className = 'lock-status';
-    lockStatus.textContent = '🔒 门锁已上锁';
-    addLog('device', '🔒 门锁已上锁');
+  // Show AI reply with tool calls
+  if (result.toolResults && result.toolResults.length > 0) {
+    const toolCallData = result.toolResults.map(tc => ({
+      name: tc.name || tc.tool || 'control_device',
+      args: tc.args || tc.input || { deviceId: targetDeviceId, action: action },
+      result: tc.result || toolResult
+    }));
+    addChatBubbleWithToolCalls(result.reply || ('已执行: ' + action), toolCallData);
   } else {
-    lockStatus.className = 'lock-status';
-    lockStatus.textContent = currentLocked ? '🔒 当前状态: 已上锁' : '🔓 当前状态: 已解锁';
-    addLog('device', `状态查询: ${currentLocked ? 'locked' : 'unlocked'}`);
+    addChatBubble('ai', result.reply || ('已执行: ' + action));
   }
 
+  // Update device state
+  const dev = boundDevices.find(d => d.deviceId === targetDeviceId);
+  if (dev) {
+    if ('locked' in reportedState) dev.state.locked = reportedState.locked;
+    if ('brightness' in reportedState) dev.state.brightness = reportedState.brightness;
+    if ('temperature' in reportedState) dev.state.temperature = reportedState.temperature;
+    if (action === 'unlock') dev.state.locked = false;
+    if (action === 'lock') dev.state.locked = true;
+    if (action === 'set_brightness') dev.state.brightness = reportedState.brightness || 100;
+    if (action === 'set_temperature') dev.state.temperature = reportedState.temperature || 24;
+  }
+
+  const stateStr = Object.entries(reportedState).map(function(kv) { return kv[0] + ': ' + kv[1]; }).join(', ');
+  addLog('device', '\u{1F4E4} 设备状态上报 [' + targetDeviceId + ']: ' + (stateStr || action));
+
+  // Update central visual
+  const typeConfig = dev ? (DEVICE_TYPES[dev.type] || DEVICE_TYPES['Smart Lock']) : DEVICE_TYPES['Smart Lock'];
+  if (dev) {
+    const stateLabel = typeConfig.stateLabel(dev.state);
+    lockStatus.textContent = stateLabel + ' \u00B7 ' + dev.name;
+
+    const isActive = dev.type === 'Smart Lock' ? !dev.state.locked
+      : dev.type === 'Light' ? dev.state.brightness > 0
+      : dev.type === 'Air Conditioner' ? true
+      : false;
+
+    if (isActive) {
+      lockRing.className = 'lock-ring unlocked';
+      lockIcon.className = 'lock-icon unlocked';
+      lockIcon.textContent = typeConfig.iconActive;
+      lockStatus.className = 'lock-status unlocked';
+    } else {
+      lockRing.className = 'lock-ring locked';
+      lockIcon.className = 'lock-icon';
+      lockIcon.textContent = typeConfig.icon;
+      lockStatus.className = 'lock-status';
+    }
+  }
+
+  // Handle grant access for guest mode
+  if (action === 'grant_access' || message.indexOf('授权') !== -1) {
+    const match = message.match(/(\d+)/);
+    const hours = match ? parseInt(match[1]) : 4;
+    guestExpiry = Date.now() + hours * 3600 * 1000;
+    const grantTxId = generateMockTxId();
+    addLogWithTx('chain', '\u2713 grantAccess 授权 ' + hours + 'h', grantTxId);
+    addLog('ai', '访客授权已生效，有效期 ' + hours + ' 小时');
+    // If currently in guest mode, restart countdown
+    if (currentRole === 'guest') {
+      guestAccessExpired = false;
+      document.getElementById('expiredBanner').style.display = 'none';
+      document.getElementById('guestCountdown').classList.remove('expired');
+      document.getElementById('countdownExpiry').textContent = '过期时间: ' + new Date(guestExpiry).toLocaleTimeString();
+      enableControls();
+      startGuestCountdown();
+    }
+  }
+
+  renderDeviceGrid();
   completeStep('step-device');
-
-  if (result?.reply) {
-    addLog('ai', `管家: ${result.reply}`);
-  }
 
   await sleep(300);
   isRunning = false;
@@ -332,8 +946,9 @@ async function runCommand(message) {
 }
 
 function inferAction(msg) {
-  if (msg.includes('开') || msg.includes('unlock')) return 'unlock';
-  if (msg.includes('锁') || msg.includes('lock') || msg.includes('关')) return 'lock';
+  if (msg.indexOf('开') !== -1 || msg.indexOf('unlock') !== -1) return 'unlock';
+  if (msg.indexOf('锁') !== -1 || msg.indexOf('lock') !== -1 || msg.indexOf('关') !== -1) return 'lock';
+  if (msg.indexOf('授权') !== -1 || msg.indexOf('grant') !== -1) return 'grant_access';
   return 'status';
 }
 
@@ -357,21 +972,256 @@ async function activateStep(id, duration) {
   completeStep(id);
 }
 
+// === Log Functions ===
 function addLog(type, text) {
   const entry = document.createElement('div');
   entry.className = 'log-entry';
   const tagClass = { ai: 'tag-ai', chain: 'tag-chain', p2p: 'tag-p2p', device: 'tag-device' }[type] || 'tag-ai';
   const tagLabel = { ai: 'AI', chain: 'CHAIN', p2p: 'P2P', device: 'DEVICE' }[type] || 'SYS';
-  entry.innerHTML = `<span class="tag ${tagClass}">${tagLabel}</span>${escapeHtml(text)}`;
+  entry.innerHTML = '<span class="tag ' + tagClass + '">' + tagLabel + '</span>' + escapeHtml(text);
   logContainer.insertBefore(entry, logContainer.firstChild);
   if (logContainer.children.length > 30) logContainer.removeChild(logContainer.lastChild);
 }
 
+function addLogWithTx(type, text, txId) {
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  const tagClass = { ai: 'tag-ai', chain: 'tag-chain', p2p: 'tag-p2p', device: 'tag-device' }[type] || 'tag-ai';
+  const tagLabel = { ai: 'AI', chain: 'CHAIN', p2p: 'P2P', device: 'DEVICE' }[type] || 'SYS';
+  const txLink = '<a class="tx-link" href="' + TRONSCAN_BASE + txId + '" target="_blank" rel="noopener" title="' + txId + '">\u{1F4CE} ' + txId.slice(0,8) + '...' + txId.slice(-6) + '</a>';
+  entry.innerHTML = '<span class="tag ' + tagClass + '">' + tagLabel + '</span>' + escapeHtml(text) + ' ' + txLink;
+  logContainer.insertBefore(entry, logContainer.firstChild);
+  if (logContainer.children.length > 30) logContainer.removeChild(logContainer.lastChild);
+}
+
+function generateMockTxId() {
+  const chars = '0123456789abcdef';
+  let txId = '';
+  for (let i = 0; i < 64; i++) txId += chars[Math.floor(Math.random() * 16)];
+  return txId;
+}
+
+// === Chat Bubble Functions ===
+function addChatBubble(type, text) {
+  const bubble = document.createElement('div');
+  if (type === 'user') {
+    bubble.className = 'chat-bubble user';
+    bubble.textContent = text;
+  } else {
+    bubble.className = 'chat-bubble ai';
+    bubble.innerHTML = '<div class="ai-label">\u{1F9E0} AI 管家</div><div>' + escapeHtml(text) + '</div>';
+  }
+  chatContainer.appendChild(bubble);
+  chatContainer.classList.add('has-messages');
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+  return bubble;
+}
+
+function addThinkingBubble() {
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble thinking';
+  bubble.innerHTML = '<span style="margin-right:6px;">\u{1F9E0}</span> AI 思考中 <span class="thinking-dots"><span></span><span></span><span></span></span>';
+  chatContainer.appendChild(bubble);
+  chatContainer.classList.add('has-messages');
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+  return bubble;
+}
+
+function addChatBubbleWithToolCalls(text, toolCalls) {
+  const bubble = document.createElement('div');
+  bubble.className = 'chat-bubble ai';
+  let toolHtml = '';
+  if (toolCalls && toolCalls.length > 0) {
+    toolHtml = toolCalls.map(function(tc, i) {
+      const argsStr = JSON.stringify(tc.args, null, 2);
+      const resultStr = JSON.stringify(tc.result, null, 2);
+      return '<div class="tool-call-panel">' +
+        '<div class="tool-call-header" onclick="toggleToolCall(this)">\u{1F527} ' + escapeHtml(tc.name) + '(' + Object.keys(tc.args || {}).join(', ') + ')</div>' +
+        '<div class="tool-call-body"><b>Args:</b>\n' + escapeHtml(argsStr) + '\n\n<b>Result:</b>\n' + escapeHtml(resultStr) + '</div>' +
+        '</div>';
+    }).join('');
+  }
+  bubble.innerHTML = '<div class="ai-label">\u{1F9E0} AI 管家</div><div>' + escapeHtml(text) + '</div>' + toolHtml;
+  chatContainer.appendChild(bubble);
+  chatContainer.classList.add('has-messages');
+  chatContainer.scrollTop = chatContainer.scrollHeight;
+  return bubble;
+}
+
+function toggleToolCall(headerEl) {
+  headerEl.classList.toggle('open');
+  const body = headerEl.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+// === Role Switching ===
+function switchRole(role) {
+  currentRole = role;
+  document.getElementById('roleOwnerBtn').classList.toggle('active', role === 'owner');
+  document.getElementById('roleGuestBtn').classList.toggle('active', role === 'guest');
+
+  const guestCountdownEl = document.getElementById('guestCountdown');
+  const expiredBanner = document.getElementById('expiredBanner');
+
+  if (role === 'guest') {
+    if (!guestExpiry) {
+      guestExpiry = Date.now() + 4 * 3600 * 1000;
+    }
+    guestCountdownEl.style.display = 'block';
+    guestCountdownEl.classList.remove('expired');
+    guestAccessExpired = false;
+    expiredBanner.style.display = 'none';
+    enableControls();
+    startGuestCountdown();
+    addLog('ai', '\u{1F504} 切换到访客视角（Guest）');
+    document.getElementById('countdownExpiry').textContent = '过期时间: ' + new Date(guestExpiry).toLocaleTimeString();
+  } else {
+    guestCountdownEl.style.display = 'none';
+    expiredBanner.style.display = 'none';
+    guestAccessExpired = false;
+    stopGuestCountdown();
+    enableControls();
+    addLog('ai', '\u{1F504} 切换到所有者视角（Owner）');
+  }
+}
+
+function startGuestCountdown() {
+  stopGuestCountdown();
+  updateCountdownDisplay();
+  guestCountdownInterval = setInterval(updateCountdownDisplay, 1000);
+}
+
+function stopGuestCountdown() {
+  if (guestCountdownInterval) {
+    clearInterval(guestCountdownInterval);
+    guestCountdownInterval = null;
+  }
+}
+
+function updateCountdownDisplay() {
+  if (currentRole !== 'guest' || !guestExpiry) return;
+  const remaining = guestExpiry - Date.now();
+  const countdownEl = document.getElementById('countdownTime');
+  const guestCountdownEl = document.getElementById('guestCountdown');
+  const expiredBanner = document.getElementById('expiredBanner');
+
+  if (remaining <= 0) {
+    countdownEl.textContent = '00:00:00';
+    guestCountdownEl.classList.add('expired');
+    expiredBanner.style.display = 'block';
+    guestAccessExpired = true;
+    disableControls();
+    stopGuestCountdown();
+    addLog('chain', '\u26A0\uFE0F 访客授权已过期');
+    return;
+  }
+
+  const h = Math.floor(remaining / 3600000);
+  const m = Math.floor((remaining % 3600000) / 60000);
+  const s = Math.floor((remaining % 60000) / 1000);
+  countdownEl.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+}
+
+function disableControls() {
+  document.querySelectorAll('.quick-btn').forEach(function(btn) { btn.disabled = true; });
+  document.querySelectorAll('.batch-btn').forEach(function(btn) { btn.disabled = true; });
+  input.disabled = true;
+  sendBtn.disabled = true;
+  input.placeholder = '授权已过期，无法操作';
+}
+
+function enableControls() {
+  document.querySelectorAll('.quick-btn').forEach(function(btn) { btn.disabled = false; });
+  document.querySelectorAll('.batch-btn').forEach(function(btn) { btn.disabled = false; });
+  input.disabled = false;
+  sendBtn.disabled = false;
+  input.placeholder = '试试说：开门 / 开灯 / 调温到26度...';
+}
+
+function formatExpiry(ts) {
+  if (!ts) return 'permanent';
+  return new Date(ts).toLocaleTimeString();
+}
+
+// === Connection Status Management ===
+function updateConnectionState(type, state) {
+  connectionState[type] = state;
+  const dotId = 'connDot' + capitalizeConn(type);
+  const labelId = 'connLabel' + capitalizeConn(type);
+  const dot = document.getElementById(dotId);
+  const label = document.getElementById(labelId);
+  const warnBanner = document.getElementById('connWarnBanner');
+
+  if (!dot) return;
+
+  dot.className = 'conn-dot ' + state;
+
+  if (label) {
+    if (state === 'connected') {
+      label.style.color = 'var(--color-success)';
+      if (type === 'ai') label.textContent = 'localhost:8787';
+      else if (type === 'signaling') label.textContent = 'ws://localhost:8080';
+      else label.textContent = '已连接';
+    } else if (state === 'connecting') {
+      label.style.color = 'var(--color-warning)';
+      label.textContent = '连接中...';
+    } else {
+      label.style.color = 'var(--color-error)';
+      label.textContent = '已断开';
+    }
+  }
+
+  // Show warning if signaling is down but P2P is up
+  if (connectionState.signaling === 'disconnected' && connectionState.p2p === 'connected') {
+    warnBanner.style.display = 'block';
+  } else {
+    warnBanner.style.display = 'none';
+  }
+}
+
+function capitalizeConn(s) {
+  var map = { signaling: 'Signaling', p2p: 'P2P', ai: 'AI' };
+  return map[s] || s;
+}
+
+// Simulate signaling connection events (demo)
+function simulateConnectionEvents() {
+  setTimeout(function() {
+    updateConnectionState('signaling', 'disconnected');
+    addLog('p2p', '\u26A0 Signaling 连接断开 (ws://localhost:8080)');
+    addLog('p2p', '\u2713 P2P 连接不受影响（去中心化特性）');
+    setTimeout(function() {
+      updateConnectionState('signaling', 'connecting');
+      setTimeout(function() {
+        updateConnectionState('signaling', 'connected');
+        addLog('p2p', '\u2713 Signaling 重新连接');
+      }, 3000);
+    }, 10000);
+  }, 30000);
+}
+
+// Ctrl+Shift+E: Set guest expiry to 30s for quick demo testing
+document.addEventListener('keydown', function(e) {
+  if (e.ctrlKey && e.shiftKey && e.key === 'E') {
+    guestExpiry = Date.now() + 30000;
+    if (currentRole === 'guest') {
+      document.getElementById('guestCountdown').classList.remove('expired');
+      document.getElementById('expiredBanner').style.display = 'none';
+      guestAccessExpired = false;
+      enableControls();
+      document.getElementById('countdownExpiry').textContent = '过期时间: ' + new Date(guestExpiry).toLocaleTimeString();
+      startGuestCountdown();
+    }
+    addLog('ai', '\u23F1 [DEBUG] 授权时间已设为 30 秒（Ctrl+Shift+E）');
+  }
+});
+
 function escapeHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
 
 // Init
 addLog('ai', '系统就绪，等待指令...');
+simulateConnectionEvents();
 </script>
 </body>
 </html>

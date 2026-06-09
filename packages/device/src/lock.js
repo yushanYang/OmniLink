@@ -6,6 +6,12 @@
  *   2. 维持一个可被 P2P 连接的服务端（非 initiator）
  *   3. 收到 P2P 指令(lock/unlock/status)后改变状态并回传
  *
+ * Stability hardening (v2):
+ *   - Startup health check logging (system info, config summary)
+ *   - Graceful degradation on chain registration timeout/network errors
+ *   - Robust reconnect-after-disconnect with exponential backoff
+ *   - Configurable re-listen delay to avoid tight loops on repeated failures
+ *
  * 用法: npm run device -w @omnilink/device
  */
 import path from "node:path";
@@ -15,8 +21,8 @@ import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { createPeerChannel } from "./peer-channel.js";
 
-// TronWeb dynamic import (ESM)
-const TronWeb = (await import("tronweb")).default;
+// TronWeb v6 named export
+const { TronWeb } = await import("tronweb");
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
@@ -31,6 +37,13 @@ const TRON_PRIVATE_KEY = process.env.TRON_PRIVATE_KEY || "";
 const DEVICE_REGISTRY_ADDRESS = process.env.DEVICE_REGISTRY_ADDRESS || "";
 // ABI 路径：相对于 monorepo 根目录
 const ABI_PATH = path.resolve(process.cwd(), "../contracts/build/DeviceRegistry.json");
+
+// Re-listen configuration
+const RELISTEN_BASE_DELAY_MS = Number(process.env.RELISTEN_BASE_DELAY_MS || 500);
+const RELISTEN_MAX_DELAY_MS = Number(process.env.RELISTEN_MAX_DELAY_MS || 30000);
+
+// Chain registration timeout (ms)
+const CHAIN_REGISTER_TIMEOUT_MS = Number(process.env.CHAIN_REGISTER_TIMEOUT_MS || 30000);
 
 /**
  * 创建门锁初始状态。
@@ -99,77 +112,140 @@ export function handleCommand(state, msg) {
   };
 }
 
-async function main() {
-  // ===== 链上注册 =====
+/**
+ * Register device on TRON chain with timeout protection.
+ * Returns silently on failure (graceful degradation) — the device continues in local mode.
+ */
+async function registerOnChain() {
   if (!TRON_PRIVATE_KEY || !DEVICE_REGISTRY_ADDRESS) {
     console.warn("⚠️  TRON_PRIVATE_KEY 或 DEVICE_REGISTRY_ADDRESS 未配置，跳过上链注册（本地模式）");
-  } else {
-    console.log("⛓️  正在上链注册设备...");
-    try {
-      const tronWeb = new TronWeb({
-        fullHost: TRON_FULL_NODE,
-        privateKey: TRON_PRIVATE_KEY,
-      });
+    return;
+  }
 
-      // 加载 ABI
-      const abi = JSON.parse(readFileSync(ABI_PATH, "utf-8"));
-      const contract = tronWeb.contract(abi, DEVICE_REGISTRY_ADDRESS);
+  console.log("⛓️  正在上链注册设备...");
 
-      // 生成设备公钥（ed25519）
-      const { publicKey } = crypto.generateKeyPairSync("ed25519");
-      const pubkeyHex = publicKey.export({ type: "spki", format: "der" }).toString("hex");
+  // Wrap registration in a timeout to handle network hangs gracefully
+  const registrationPromise = (async () => {
+    const tronWeb = new TronWeb({
+      fullHost: TRON_FULL_NODE,
+      privateKey: TRON_PRIVATE_KEY,
+    });
 
-      // connInfo = signaling room (即 DEVICE_ID)
-      const connInfo = DEVICE_ID;
+    // 加载 ABI
+    const artifact = JSON.parse(readFileSync(ABI_PATH, "utf-8"));
+    const abi = artifact.abi || artifact; // support both { abi: [...] } and raw array
+    const contract = tronWeb.contract(abi, DEVICE_REGISTRY_ADDRESS);
 
-      // 调用 registerDevice(deviceId, pubkey, connInfo)
-      const tx = await contract.registerDevice(DEVICE_ID, "0x" + pubkeyHex, connInfo).send({
-        feeLimit: 100_000_000, // 100 TRX fee limit
-        shouldPollResponse: true,
-      });
+    // 生成设备公钥（ed25519）
+    const { publicKey } = crypto.generateKeyPairSync("ed25519");
+    const pubkeyHex = publicKey.export({ type: "spki", format: "der" }).toString("hex");
 
-      console.log(`✅ 上链注册成功！txID: ${tx}`);
-      console.log(`   deviceId: ${DEVICE_ID}`);
-      console.log(`   pubkey: ${pubkeyHex.slice(0, 32)}...`);
-      console.log(`   connInfo: ${connInfo}`);
-    } catch (err) {
-      // 已注册的设备会 revert "device already registered"，属正常情况
-      if (err?.message?.includes("already registered")) {
-        console.log(`ℹ️  设备 ${DEVICE_ID} 已在链上注册，跳过`);
-      } else {
-        console.error("❌ 上链注册失败:", err?.message || err);
-        console.log("   继续以本地模式运行...");
-      }
+    // connInfo = signaling room (即 DEVICE_ID)
+    const connInfo = DEVICE_ID;
+
+    // 调用 registerDevice(deviceId, pubkey, connInfo)
+    const txID = await contract.registerDevice(DEVICE_ID, "0x" + pubkeyHex, connInfo).send({
+      feeLimit: 100_000_000, // 100 TRX fee limit
+    });
+
+    console.log(`✅ 上链注册成功！txID: ${txID}`);
+    console.log(`   deviceId: ${DEVICE_ID}`);
+    console.log(`   pubkey: ${pubkeyHex.slice(0, 32)}...`);
+    console.log(`   connInfo: ${connInfo}`);
+  })();
+
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("chain registration timeout")), CHAIN_REGISTER_TIMEOUT_MS)
+  );
+
+  try {
+    await Promise.race([registrationPromise, timeoutPromise]);
+  } catch (err) {
+    // 已注册的设备会 revert "device already registered"，属正常情况
+    if (err?.message?.includes("already registered")) {
+      console.log(`ℹ️  设备 ${DEVICE_ID} 已在链上注册，跳过`);
+    } else if (err?.message?.includes("timeout")) {
+      console.warn(`⚠️  上链注册超时（${CHAIN_REGISTER_TIMEOUT_MS}ms），继续以本地模式运行`);
+    } else {
+      console.error("❌ 上链注册失败:", err?.message || err);
+      console.log("   继续以本地模式运行...");
     }
   }
+}
+
+async function main() {
+  // ===== Startup health check =====
+  console.log("────────────────────────────────────────────");
+  console.log(`[lock] Health Check @ ${new Date().toISOString()}`);
+  console.log(`[lock]   Device ID     : ${DEVICE_ID}`);
+  console.log(`[lock]   Signaling URL : ${SIGNALING_URL}`);
+  console.log(`[lock]   TRON node     : ${TRON_FULL_NODE}`);
+  console.log(`[lock]   Chain contract: ${DEVICE_REGISTRY_ADDRESS || "(not configured)"}`);
+  console.log(`[lock]   Node.js       : ${process.version}`);
+  console.log(`[lock]   Platform      : ${process.platform} ${process.arch}`);
+  console.log("────────────────────────────────────────────");
+
+  // ===== 链上注册 (with timeout & graceful degradation) =====
+  await registerOnChain();
 
   // ===== 门锁运行时 =====
   const state = createInitialState();
   console.log(`🔧 虚拟门锁启动: ${DEVICE_ID}`);
 
-  // 门锁作为被连接方（非 initiator），房间号用设备 DID
-  const channel = createPeerChannel({
-    signalingUrl: SIGNALING_URL,
-    room: DEVICE_ID,
-    initiator: false,
-    onConnect: () => channel.send({ type: "hello", state }),
-    onData: (payload) => {
-      console.log("[lock] 收到指令:", payload);
-      if (payload?.type !== "command") return;
+  // 门锁作为被连接方，支持断开后自动重新监听
+  let channel = null;
+  let listening = false;
+  let relistenAttempt = 0;
 
-      const { state: nextState, result } = handleCommand(state, payload);
-      // 把纯函数算出的新状态合并回可变的本地状态
-      Object.assign(state, nextState);
+  function startListening() {
+    if (channel) { try { channel.destroy(); } catch {} }
+    listening = true;
+    relistenAttempt = 0; // reset on fresh listen
 
-      const action = payload?.command?.action;
-      if (result.ok && action === "lock") console.log("🔒 门锁已上锁");
-      else if (result.ok && action === "unlock") console.log("🔓 门锁已解锁");
+    channel = createPeerChannel({
+      signalingUrl: SIGNALING_URL,
+      room: DEVICE_ID,
+      initiator: false,
+      maxReconnectAttempts: 0, // we manage reconnection ourselves
+      onConnect: () => {
+        relistenAttempt = 0; // successful connection resets backoff
+        channel.send({ type: "hello", state });
+      },
+      onData: (payload) => {
+        console.log("[lock] 收到指令:", payload);
+        if (payload?.type !== "command") return;
 
-      channel.send(result);
-    },
-  });
+        const { state: nextState, result } = handleCommand(state, payload);
+        Object.assign(state, nextState);
 
-  console.log(`📡 门锁已就绪，等待 P2P 连接 (room=${DEVICE_ID})`);
+        const action = payload?.command?.action;
+        if (result.ok && action === "lock") console.log("🔒 门锁已上锁");
+        else if (result.ok && action === "unlock") console.log("🔓 门锁已解锁");
+
+        channel.send(result);
+      },
+      onStateChange: (newState) => {
+        if (newState === "failed" || newState === "disconnected") {
+          if (listening) {
+            listening = false;
+            // Exponential backoff for re-listen to avoid tight loop on persistent failures
+            relistenAttempt += 1;
+            const delay = Math.min(
+              RELISTEN_BASE_DELAY_MS * Math.pow(2, relistenAttempt - 1),
+              RELISTEN_MAX_DELAY_MS
+            );
+            console.log(
+              `[lock] 连接结束，${delay}ms 后重新监听 (attempt=${relistenAttempt})`
+            );
+            setTimeout(startListening, delay);
+          }
+        }
+      },
+    });
+  }
+
+  startListening();
+  console.log(`📡 门锁已就绪，等待 P2P 连接 (room=${DEVICE_ID})，支持多次连接`);
 }
 
 // 仅当作为入口脚本直接运行时才启动 P2P 连接；被测试 import 时不产生副作用。

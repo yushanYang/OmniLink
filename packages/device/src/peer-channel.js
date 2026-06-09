@@ -6,6 +6,12 @@
  * 无法原地恢复，因此重连必须同时重建 ws 与 SimplePeer。内部用闭包持有可变的 ws/peer 以及
  * attempt/state/destroyed，通过 connect()/reconnect() 管理生命周期。connection-state 回调
  * （onStateChange）以及若干重连参数都是 **新增可选项**，省略时行为与旧版完全一致。
+ *
+ * Stability hardening (v2):
+ *   - Exponential backoff on reconnect (capped at 30s)
+ *   - ICE connection state change logging & callback
+ *   - Comprehensive destroy() that cleans up ALL timers and resources
+ *   - WebSocket reconnect on unexpected close (already present, now more robust)
  */
 import WebSocket from "ws";
 import SimplePeer from "simple-peer";
@@ -20,8 +26,10 @@ import wrtc from "@roamhq/wrtc";
  * @param {(data: any) => void} opts.onData     收到对端数据回调
  * @param {() => void} [opts.onConnect]         连接建立回调
  * @param {(state: string, info?: any) => void} [opts.onStateChange] 连接状态变化回调（每次变化触发一次）
+ * @param {(iceState: string) => void} [opts.onIceStateChange] ICE connection state change callback
  * @param {number} [opts.maxReconnectAttempts=5]  最大重连次数
- * @param {number} [opts.reconnectBaseMs=1000]    线性退避基数（毫秒）；第 N 次重连等待 N×base
+ * @param {number} [opts.reconnectBaseMs=1000]    指数退避基数（毫秒）；第 N 次重连等待 min(base×2^(N-1), 30000)
+ * @param {number} [opts.reconnectMaxMs=30000]    退避上限（毫秒）
  * @param {number} [opts.holePunchTimeoutMs=15000] 打洞超时（毫秒），超时后判定为 failed 并提示同局域网回退
  * @returns {{ send: (obj:any)=>void, destroy: ()=>void, peer: SimplePeer.Instance }}
  */
@@ -33,18 +41,21 @@ export function createPeerChannel({
   onData,
   onConnect,
   onStateChange,
+  onIceStateChange,
   maxReconnectAttempts = 5,
   reconnectBaseMs = 1000,
+  reconnectMaxMs = 30000,
   holePunchTimeoutMs = 15000,
 }) {
   const stunUrl = process.env.STUN_URL || "stun:stun.l.google.com:19302";
+  const skipStun = process.env.SKIP_STUN === "true" || process.env.STUN_URL === "none";
   const config = {
-    iceServers: iceServers
+    iceServers: skipStun ? [] : iceServers
       ? iceServers.map((u) => ({ urls: u }))
       : [{ urls: stunUrl }],
   };
 
-  // 闭包持有的可变状态
+  // Mutable state held in closure
   let ws = null;
   let peer = null;
   let attempt = 0;
@@ -53,10 +64,10 @@ export function createPeerChannel({
   let holePunchTimer = null;
   let reconnectTimer = null;
 
-  // ---- 状态机：每次真正发生变化时只触发一次回调 ----
+  // ---- State machine: only fire callback once per actual transition ----
   function setState(next, info) {
-    if (state === next) return; // 重复同态：不重复触发
-    if (state === "failed" || state === "disconnected") return; // 终态：不再迁移
+    if (state === next) return; // duplicate: don't re-fire
+    if (state === "failed" || state === "disconnected") return; // terminal: no further transitions
     state = next;
     onStateChange?.(next, info);
   }
@@ -75,7 +86,11 @@ export function createPeerChannel({
     }
   }
 
-  // 拆掉当前连接（重连前调用）：先摘除监听避免旧 close 再次触发重连，再销毁 peer/ws
+  /**
+   * Tear down current connection (called before reconnect):
+   * Remove all listeners first to prevent stale 'close' events from
+   * triggering another reconnect cycle, then destroy peer/ws.
+   */
   function teardownConnection() {
     clearHolePunchTimer();
     const oldPeer = peer;
@@ -83,24 +98,16 @@ export function createPeerChannel({
     peer = null;
     ws = null;
     if (oldPeer) {
-      try {
-        oldPeer.removeAllListeners();
-      } catch {}
-      try {
-        oldPeer.destroy();
-      } catch {}
+      try { oldPeer.removeAllListeners(); } catch {}
+      try { oldPeer.destroy(); } catch {}
     }
     if (oldWs) {
-      try {
-        oldWs.removeAllListeners();
-      } catch {}
-      try {
-        oldWs.close();
-      } catch {}
+      try { oldWs.removeAllListeners(); } catch {}
+      try { oldWs.close(); } catch {}
     }
   }
 
-  // ---- 建立一次连接：新建 ws + SimplePeer，挂监听，进入 connecting，并武装打洞计时器 ----
+  // ---- Establish one connection: new ws + SimplePeer, attach listeners, start hole-punch timer ----
   function connect() {
     if (destroyed) return;
     setState("connecting");
@@ -110,7 +117,8 @@ export function createPeerChannel({
     ws = socket;
     peer = p;
 
-    // 打洞超时：超时仍未连上 -> failed，并提示需要 Same-LAN 回退（R5.5 / R6.5）
+    // Hole-punch timeout: if not connected within deadline -> failed
+    // with hint to use Same-LAN fallback (R5.5 / R6.5)
     clearHolePunchTimer();
     holePunchTimer = setTimeout(() => {
       holePunchTimer = null;
@@ -129,20 +137,25 @@ export function createPeerChannel({
       const msg = JSON.parse(raw.toString());
       if (msg.type === "signal") {
         // Guard: ignore late signals after peer is destroyed (e.g. initiator disconnected)
-        if (!p.destroyed) p.signal(msg.data);
+        if (!p.destroyed) {
+          try { p.signal(msg.data); } catch (err) {
+            // Ignore "wrong state" errors from stale signals after reconnect
+            if (!err.message?.includes('location')) console.warn("[p2p] signal ignored:", err.message);
+          }
+        }
       }
     });
 
-    // ws 关闭且非主动 destroy -> 进入 reconnecting 并安排重连（R5.1）
+    // ws closed and not intentionally destroyed -> enter reconnecting and schedule retry (R5.1)
     socket.on("close", () => {
-      if (socket !== ws) return; // 旧连接的迟到事件，忽略
+      if (socket !== ws) return; // stale event from old connection, ignore
       if (destroyed || state === "failed" || state === "disconnected") return;
+      console.log(`[p2p] signaling ws closed unexpectedly (room=${room}), scheduling reconnect`);
       setState("reconnecting");
       scheduleReconnect();
     });
 
-    // 重连过程中连接失败的 ws 会触发 'error'，必须监听以免 EventEmitter 抛出导致进程崩溃；
-    // 真正的重连由 'close' 驱动。
+    // Must handle 'error' to prevent EventEmitter throwing; reconnect is driven by 'close'
     socket.on("error", (err) => {
       console.warn("[p2p] signaling ws error:", err?.message ?? err);
     });
@@ -159,7 +172,7 @@ export function createPeerChannel({
 
     p.on("connect", () => {
       clearHolePunchTimer();
-      attempt = 0; // 连上后重置重连计数
+      attempt = 0; // reset reconnect counter on successful connection
       console.log(`[p2p] connected (room=${room})`);
       setState("connected");
       onConnect?.();
@@ -176,9 +189,38 @@ export function createPeerChannel({
     });
 
     p.on("error", (err) => console.error("[p2p] error:", err.message));
+
+    // ---- ICE connection state monitoring ----
+    // simple-peer exposes the underlying RTCPeerConnection via peer._pc
+    // We watch iceConnectionState changes for diagnostics
+    if (p._pc) {
+      _attachIceMonitor(p._pc);
+    } else {
+      // _pc may not be available immediately; wait for it to be created
+      const origSetup = p._setupData?.bind(p);
+      const checkPc = setInterval(() => {
+        if (p._pc) {
+          clearInterval(checkPc);
+          _attachIceMonitor(p._pc);
+        }
+        if (p.destroyed) clearInterval(checkPc);
+      }, 50);
+      // Safety: stop checking after 10s regardless
+      setTimeout(() => clearInterval(checkPc), 10000);
+    }
+
+    function _attachIceMonitor(pc) {
+      try {
+        pc.addEventListener("iceconnectionstatechange", () => {
+          const iceState = pc.iceConnectionState;
+          console.log(`[p2p] ICE state: ${iceState} (room=${room})`);
+          onIceStateChange?.(iceState);
+        });
+      } catch {}
+    }
   }
 
-  // ---- 安排下一次重连：线性退避 delay = attempt × base；超出上限 -> failed ----
+  // ---- Schedule next reconnect: exponential backoff delay = base×2^(attempt-1), capped at reconnectMaxMs ----
   function scheduleReconnect() {
     if (destroyed || state === "failed" || state === "disconnected") return;
     if (attempt >= maxReconnectAttempts) {
@@ -190,12 +232,14 @@ export function createPeerChannel({
       return;
     }
     attempt += 1;
-    const delay = attempt * reconnectBaseMs;
+    // Exponential backoff: base × 2^(attempt-1), capped
+    const delay = Math.min(reconnectBaseMs * Math.pow(2, attempt - 1), reconnectMaxMs);
+    console.log(`[p2p] reconnect attempt ${attempt}/${maxReconnectAttempts} in ${delay}ms (room=${room})`);
     clearReconnectTimer();
     reconnectTimer = setTimeout(reconnect, delay);
   }
 
-  // ---- 执行重连：拆掉旧 ws/peer，重新 connect()（会重新 join 房间并重建 DataChannel）----
+  // ---- Execute reconnect: tear down old ws/peer, re-connect() (will re-join room and rebuild DataChannel) ----
   function reconnect() {
     reconnectTimer = null;
     if (destroyed) return;
@@ -203,7 +247,7 @@ export function createPeerChannel({
     connect();
   }
 
-  // 首次连接
+  // Initial connection
   connect();
 
   return {
@@ -211,22 +255,26 @@ export function createPeerChannel({
       if (peer && peer.connected) peer.send(JSON.stringify(obj));
     },
     destroy: () => {
-      destroyed = true; // 抑制后续重连
+      if (destroyed) return; // idempotent
+      destroyed = true; // suppress all subsequent reconnects
       clearHolePunchTimer();
       clearReconnectTimer();
       setState("disconnected");
+
+      // Clean up peer
       if (peer) {
-        try {
-          peer.destroy();
-        } catch {}
+        try { peer.removeAllListeners(); } catch {}
+        try { peer.destroy(); } catch {}
+        peer = null;
       }
+      // Clean up WebSocket
       if (ws) {
-        try {
-          ws.close();
-        } catch {}
+        try { ws.removeAllListeners(); } catch {}
+        try { ws.close(); } catch {}
+        ws = null;
       }
     },
-    // 暴露当前 peer：用 getter 保证重连后仍指向最新实例（保持 { send, destroy, peer } 契约）
+    // Expose current peer via getter: after reconnect it still points to the latest instance
     get peer() {
       return peer;
     },

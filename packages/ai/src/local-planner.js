@@ -1,8 +1,8 @@
 const LOCK_WORDS = ["lock", "locked", "close", "secure", "\u4e0a\u9501", "\u9501\u4e0a", "\u9501\u95e8", "\u5173\u95e8"];
 const UNLOCK_WORDS = ["unlock", "open", "\u5f00\u9501", "\u89e3\u9501", "\u5f00\u95e8"];
 const STATUS_WORDS = ["status", "state", "\u72b6\u6001", "\u600e\u4e48\u6837"];
-const LIGHT_WORDS = ["light", "lamp", "brightness", "\u706f", "\u4eae\u5ea6"];
-const TEMP_WORDS = ["temperature", "temp", "air", "ac", "\u7a7a\u8c03", "\u6e29\u5ea6"];
+const LIGHT_WORDS = ["light", "lamp", "brightness", "\u706f", "\u4eae\u5ea6", "\u5f00\u706f", "\u5173\u706f", "\u7167\u660e"];
+const TEMP_WORDS = ["temperature", "temp", "air", "ac", "\u7a7a\u8c03", "\u6e29\u5ea6", "\u8c03\u6e29", "\u5236\u51b7", "\u5236\u70ed", "\u5ea6\u6570", "\u5ea6"];
 const LIST_WORDS = ["devices", "device list", "what devices", "\u6709\u54ea\u4e9b", "\u8bbe\u5907"];
 const GRANT_WORDS = ["grant", "authorize", "access", "visitor", "guest", "\u6388\u6743", "\u8bbf\u5ba2", "\u4fdd\u6d01"];
 

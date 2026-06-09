@@ -5,33 +5,60 @@ import { createPeerChannel } from "../../device/src/peer-channel.js";
  * Creates a pooled P2P executor that reuses WebRTC connections.
  * First command to a device pays the full handshake cost (~3-5s),
  * subsequent commands reuse the existing DataChannel (~10ms).
+ *
+ * Auto-recovery: if a command times out or the connection drops,
+ * the stale entry is purged from the pool and the next call gets a fresh connection.
  */
 export function createP2PExecutor({
   signalingUrl = process.env.SIGNALING_URL || "ws://localhost:8080",
-  timeoutMs = Number(process.env.AI_P2P_TIMEOUT_MS || 12000),
+  timeoutMs = Number(process.env.AI_P2P_TIMEOUT_MS || 8000),
   iceServers,
-  idleTimeoutMs = Number(process.env.AI_P2P_IDLE_MS || 60000), // close idle connections after 60s
+  idleTimeoutMs = Number(process.env.AI_P2P_IDLE_MS || 60000),
 } = {}) {
-  // Connection pool: deviceId -> { channel, connected, pending, idleTimer }
   const pool = new Map();
 
-  return async function executeOverP2P(deviceId, command) {
-    const conn = getOrCreateConnection(deviceId);
+  return async function executeOverP2P(deviceId, command, _retried = false) {
+    let conn = getOrCreateConnection(deviceId);
 
     // Wait for connection to be ready
     if (!conn.connected) {
-      await waitForConnect(conn, timeoutMs);
+      try {
+        await waitForConnect(conn, timeoutMs);
+      } catch (err) {
+        // Connection failed — destroy stale entry and retry once
+        destroyConnection(deviceId);
+        if (!_retried) {
+          console.log(`[p2p-pool] connect failed for ${deviceId}, retrying...`);
+          return executeOverP2P(deviceId, command, true);
+        }
+        throw err;
+      }
     }
 
-    return sendCommand(conn, deviceId, command, timeoutMs);
+    try {
+      return await sendCommand(conn, deviceId, command, timeoutMs);
+    } catch (err) {
+      // Command timed out — connection is likely dead, destroy and retry once
+      destroyConnection(deviceId);
+      if (!_retried) {
+        console.log(`[p2p-pool] command timeout for ${deviceId}, reconnecting...`);
+        return executeOverP2P(deviceId, command, true);
+      }
+      throw err;
+    }
   };
 
   function getOrCreateConnection(deviceId) {
     if (pool.has(deviceId)) {
       const conn = pool.get(deviceId);
-      // Reset idle timer on reuse
-      resetIdleTimer(conn, deviceId);
-      return conn;
+      // Check if the connection is still alive
+      if (conn.connected && conn.channel?.peer?.destroyed) {
+        // Dead connection in pool, remove it
+        destroyConnection(deviceId);
+      } else {
+        resetIdleTimer(conn, deviceId);
+        return conn;
+      }
     }
 
     const conn = {
@@ -40,11 +67,10 @@ export function createP2PExecutor({
       connectPromise: null,
       connectResolve: null,
       connectReject: null,
-      pending: new Map(), // requestId -> { resolve, reject, timer }
+      pending: new Map(),
       idleTimer: null,
     };
 
-    // Create connect promise
     conn.connectPromise = new Promise((resolve, reject) => {
       conn.connectResolve = resolve;
       conn.connectReject = reject;
@@ -80,8 +106,7 @@ export function createP2PExecutor({
       onStateChange: (state, info) => {
         if (state === "failed" || state === "disconnected") {
           console.warn(`[p2p-pool] ${deviceId} connection ${state}`, info?.message || "");
-          // Reject all pending requests
-          for (const [reqId, req] of conn.pending) {
+          for (const [, req] of conn.pending) {
             clearTimeout(req.timer);
             req.reject(new Error(`P2P connection ${state} for ${deviceId}`));
           }
@@ -101,7 +126,6 @@ export function createP2PExecutor({
     const timer = setTimeout(() => {
       conn.connectReject?.(new Error("P2P connect timeout"));
     }, timeout);
-
     try {
       await conn.connectPromise;
     } finally {
@@ -119,7 +143,15 @@ export function createP2PExecutor({
       }, timeout);
 
       conn.pending.set(requestId, { resolve, reject, timer, action: command.action });
-      conn.channel.send({ type: "command", requestId, command });
+
+      // Safety: check if channel is still usable before sending
+      try {
+        conn.channel.send({ type: "command", requestId, command });
+      } catch (err) {
+        conn.pending.delete(requestId);
+        clearTimeout(timer);
+        reject(new Error(`P2P send failed for ${deviceId}: ${err.message}`));
+      }
     });
   }
 
@@ -127,9 +159,16 @@ export function createP2PExecutor({
     if (conn.idleTimer) clearTimeout(conn.idleTimer);
     conn.idleTimer = setTimeout(() => {
       console.log(`[p2p-pool] closing idle connection to ${deviceId}`);
-      conn.channel?.destroy();
-      pool.delete(deviceId);
+      destroyConnection(deviceId);
     }, idleTimeoutMs);
+  }
+
+  function destroyConnection(deviceId) {
+    const conn = pool.get(deviceId);
+    if (!conn) return;
+    if (conn.idleTimer) clearTimeout(conn.idleTimer);
+    try { conn.channel?.destroy(); } catch {}
+    pool.delete(deviceId);
   }
 }
 

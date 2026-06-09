@@ -1,6 +1,7 @@
 import http from "node:http";
 import { createButler, createMockRuntime, DeviceRouter } from "./index.js";
-import { createP2PExecutor } from "./p2p-executor.js";
+import { createPersistentP2PExecutor } from "./p2p-persistent.js";
+import { createChainRuntime, isChainConfigured } from "./chain-runtime.js";
 import { loadEnv } from "./env.js";
 
 loadEnv();
@@ -10,10 +11,25 @@ const HOST = process.env.AI_HOST || "0.0.0.0";
 
 // AI_EXECUTOR=p2p 时使用真实 WebRTC P2P 下发；否则走 mock
 const USE_P2P = (process.env.AI_EXECUTOR || "mock").toLowerCase() === "p2p";
-const p2pExecutor = USE_P2P ? createP2PExecutor({
+// 持久 P2P 直连：首次握手后保持 DataChannel，命令 <50ms 送达
+const p2pExecutor = USE_P2P ? createPersistentP2PExecutor({
   signalingUrl: process.env.SIGNALING_URL || "ws://localhost:8080",
-  timeoutMs: Number(process.env.AI_P2P_TIMEOUT_MS || 12000),
+  connectTimeoutMs: Number(process.env.AI_P2P_CONNECT_TIMEOUT || 10000),
+  commandTimeoutMs: Number(process.env.AI_P2P_CMD_TIMEOUT || 5000),
 }) : null;
+
+// Chain runtime: auto-detect if DEVICE_REGISTRY_ADDRESS is configured
+const USE_CHAIN = isChainConfigured();
+let chainRuntime = null;
+
+if (USE_CHAIN) {
+  createChainRuntime().then(rt => {
+    chainRuntime = rt;
+    console.log("⛓️  Chain runtime ready (TRON DeviceRegistry)");
+  }).catch(err => {
+    console.warn("⚠️  Chain runtime init failed, falling back to mock:", err.message);
+  });
+}
 
 const server = http.createServer(async (req, res) => {
   setCorsHeaders(res);
@@ -29,6 +45,7 @@ const server = http.createServer(async (req, res) => {
       sendJson(res, 200, {
         ok: true,
         service: "OmniLink AI API",
+        chain: USE_CHAIN ? "tron-nile" : "mock",
         executor: USE_P2P ? "p2p" : "mock",
         mode: process.env.AI_MODE || "auto",
         openaiKeyConfigured: hasUsableApiKey(process.env.OPENAI_API_KEY),
@@ -37,25 +54,25 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === "GET" && req.url === "/devices") {
-      const runtime = createMockRuntime();
-      const devices = await runtime.listDevices({ userAddress: "demo-owner" });
+      const rt = chainRuntime || createMockRuntime();
+      const devices = await rt.listDevices({ userAddress: "demo-owner" });
       sendJson(res, 200, { ok: true, devices });
       return;
     }
 
     if (req.method === "POST" && req.url === "/access/check") {
       const body = await readJson(req);
-      const runtime = createMockRuntime();
-      const allowed = await runtime.checkAccess(body.deviceId, body.walletAddress);
-      sendJson(res, 200, { ok: true, allowed, walletAddress: body.walletAddress, deviceId: body.deviceId, expiresAt: allowed ? "permanent" : null });
+      const rt = chainRuntime || createMockRuntime();
+      const allowed = await rt.checkAccess(body.deviceId, body.walletAddress);
+      sendJson(res, 200, { ok: true, allowed, walletAddress: body.walletAddress, deviceId: body.deviceId, expiresAt: allowed ? "permanent" : null, source: chainRuntime ? "chain" : "mock" });
       return;
     }
 
     if (req.method === "POST" && req.url === "/access/grant") {
       const body = await readJson(req);
-      const runtime = createMockRuntime();
-      const result = await runtime.grantAccess({ deviceId: body.deviceId, userAddress: body.walletAddress, durationHours: body.durationHours });
-      sendJson(res, 200, { ok: true, txId: result.expiresAt ? `mock-tx-${Date.now().toString(16)}` : null, ...result });
+      const rt = chainRuntime || createMockRuntime();
+      const result = await rt.grantAccess({ deviceId: body.deviceId, userAddress: body.walletAddress, durationHours: body.durationHours });
+      sendJson(res, 200, { ok: true, ...result });
       return;
     }
 
@@ -67,12 +84,8 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       if (USE_P2P) {
-        try {
-          const result = await p2pExecutor(deviceId, { action });
-          sendJson(res, 200, { ok: true, ...result });
-        } catch (err) {
-          sendJson(res, 504, { ok: false, error: err.message });
-        }
+        const result = await p2pExecutor(deviceId, { action });
+        sendJson(res, 200, { ok: true, ...result });
       } else {
         const runtime = createMockRuntime();
         const result = await runtime.executor(deviceId, { action });
@@ -97,6 +110,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, HOST, () => {
   console.log(`OmniLink AI API listening on http://${HOST}:${PORT}`);
   console.log(`Executor: ${USE_P2P ? "P2P (WebRTC via signaling)" : "Mock (in-memory)"}`);
+  console.log(`Chain: ${USE_CHAIN ? "TRON (DeviceRegistry)" : "Mock (in-memory)"}`);
   console.log(`Health: http://localhost:${PORT}/health`);
   console.log(`Chat:   POST http://localhost:${PORT}/chat`);
 });
@@ -108,7 +122,11 @@ async function handleChat(body) {
   // P2P 模式：用真实 executor 替换 mock executor，其余保持 mock runtime
   const routerOpts = USE_P2P
     ? {
+        // If chain runtime is available, use its checkAccess and listDevices
+        ...(chainRuntime ? { listDevices: chainRuntime.listDevices, checkAccess: chainRuntime.checkAccess, grantAccess: chainRuntime.grantAccess } : {}),
         ...runtime,
+        // Override with chain if available (spread order: chain overrides mock)
+        ...(chainRuntime ? { listDevices: chainRuntime.listDevices, checkAccess: chainRuntime.checkAccess, grantAccess: chainRuntime.grantAccess } : {}),
         executor: async (deviceId, command, context) => {
           console.log(`[p2p] sending ${command.action} to ${deviceId}`);
           return p2pExecutor(deviceId, command);
@@ -116,7 +134,10 @@ async function handleChat(body) {
       }
     : runtime;
 
-  const router = new DeviceRouter(routerOpts);
+  // Non-P2P mode: also overlay chain if available
+  const finalOpts = (!USE_P2P && chainRuntime) ? { ...routerOpts, listDevices: chainRuntime.listDevices, checkAccess: chainRuntime.checkAccess, grantAccess: chainRuntime.grantAccess } : routerOpts;
+
+  const router = new DeviceRouter(finalOpts);
   const butler = createButler({
     router,
     mode: process.env.AI_MODE || "auto",
